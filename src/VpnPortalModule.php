@@ -81,7 +81,135 @@ class VpnPortalModule implements ServiceModuleInterface
                 return new RedirectResponse($request->getRootUri().'home', 302);
             }
         );
+        $service->get(
+            '/WG',
+            /**
+             * @return \LC\Common\Http\Response
+             */
+            function (Request $request, array $hookData) {
+                $motdMessages = $this->serverClient->getRequireArray('system_messages', ['message_type' => 'motd']);
+                if (0 === \count($motdMessages)) {
+                    $motdMessage = false;
+                } else {
+                    $motdMessage = $motdMessages[0];
+                }
+                $nm = "";
+                $client = new CurlHttpClient();
 
+               $user =  $client->get('localhost:8080 /identify');
+               $wguser = json_decode($user[1],true);
+               foreach($wguser as $use => $value){
+                $nm = $value;
+               }
+                $userInfo = $hookData['auth'];
+
+                return new HtmlResponse(
+                    $this->tpl->render(
+                        'vpnPortalHome_WG',
+                        [
+                            'motdMessage' => $motdMessage,
+                            'wguser' => $nm,
+                            'userdata' => $userInfo
+                        ]
+                    )
+                );
+            }
+        );
+        $service->get(
+            '/configs',
+            /**
+             * @return \LC\Common\Http\Response
+             */
+            function (Request $request, array $hookData) {
+
+                $userInfo = $hookData['auth'];
+                $nm = "";
+                $client = new CurlHttpClient;
+
+                $user =  $client->get('localhost:8080/identify');
+                $wguser = json_decode($user[1],true);
+                foreach($wguser as $use => $value){
+                    $nm = $value;
+
+                }
+                $linkin = 'localhost:8080/wg/api/'.$nm.'/clients';
+                $clients = $client->get($linkin);
+                $wgusers = json_decode($clients[1],true);
+
+             return new HtmlResponse(
+                    $this->tpl->render(
+                        'vpnPortalclients_WG',
+                        [
+                            'motdMessage' => $motdMessage,
+                            'wguser' => $nm,
+                            'wgclients' => $wgusers,
+                            'userlink' => $linkin,
+
+
+                        ]
+                    )
+                );
+            }
+        );
+        $service->get(
+            '/CR',
+            /**
+             * @return \LC\Common\Http\Response
+             */
+            function (Request $request, array $hookData) {
+                /** @var \LC\Common\Http\UserInfo */
+                return new HtmlResponse(
+                    $this->tpl->render(
+                        'vpnPortalCreateClient_WG',
+                        [
+
+                        ]
+                    )
+                );
+
+            }
+        );
+        $service->post(
+
+               '/createclient',
+                function(Request $request, array $hookData){
+                    $userInfo = $hookData['auth'];
+                    $createuser = new CurlHttpClient();
+                    $nm = "";
+                    $client = new CurlHttpClient;
+                    $user =  $client->get('localhost:8080/identify');
+                    $wguser = json_decode($user[1],true);
+                    foreach($wguser as $use => $value){
+                        $nm = $value;
+
+                    }
+                    $linkin = 'localhost:8080/wg/api/'.$nm.'/clients';
+                    $displayName = $request->getPostParameters('Name');
+
+                    $displayInfo = $request->getPostParameters('Info');
+                    $wgname = null;
+                    $wginfo = null;
+                    foreach($displayName as $name){
+                            if($wgname == null and $wginfo == null) {
+                                $wgname = $name;
+                            }
+                                else if($wgname != null and $wginfo == null){
+                                    $wginfo = $name;
+                                }
+                            }
+
+
+
+
+
+                    $displayJson = json_encode(['name' => $displayName, 'info'=> $displayInfo]);
+                    $createuser->postJson($linkin,json_encode(['name' => $wgname, 'info'=> $wginfo]));
+                    return new RedirectResponse($request->getRootUri().'CR', 302);
+
+                }
+
+
+        );
         $service->get(
             '/home',
             /**
