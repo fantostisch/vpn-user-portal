@@ -96,7 +96,7 @@ class VpnPortalModule implements ServiceModuleInterface
                 $nm = "";
                 $client = new CurlHttpClient();
 
-               $user =  $client->get('localhost:8080 /identify');
+               $user =  $client->get('localhost:8080/identify');
                $wguser = json_decode($user[1],true);
                foreach($wguser as $use => $value){
                 $nm = $value;
@@ -138,7 +138,7 @@ class VpnPortalModule implements ServiceModuleInterface
 
              return new HtmlResponse(
                     $this->tpl->render(
-                        'vpnPortalclients_WG',
+                        'vpnPortalClients_WG',
                         [
                             'motdMessage' => $motdMessage,
                             'wguser' => $nm,
