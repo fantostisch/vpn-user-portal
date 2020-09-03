@@ -1,6 +1,29 @@
 # Changelog
 
-## 2.3.0 (...)
+## 2.3.4 (...)
+- implement `ClientCertAuthentication`
+- fix CSS/JS cache busting
+
+## 2.3.3 (2020-07-28)
+- update `fkooman/secookie`
+
+## 2.3.2 (2020-07-27)
+- use grid layout for vertical alignment on page
+- drop `bacon/bacon-qr-code` PHP dependency and use `/usr/bin/qrencode` 
+  instead, improving performance a 
+  [lot](https://github.com/Bacon/BaconQrCode/issues/70)
+
+## 2.3.1 (2020-07-10)
+- update `uk_UA` translation
+- update `pl_PL` translation
+- update `nb_NO` translation
+- update `de_DE` translation
+- update `fr_FR` translation
+- update `ar_MA` translation
+- update `da_DK` translation
+- small CSS style updates
+
+## 2.3.0 (2020-06-29)
 - expose `default_gateway` in `/profile_list` API response indicating whether 
   or not the profile expects all traffic over the VPN
 - implement CSS cache busting

@@ -11,6 +11,9 @@ body {
   width: 100%;
   line-height: 1.4;
   color: #505050;
+  display: grid;
+  min-height: 100vh;
+  grid-template-rows: auto auto auto 1fr auto;
 }
 
 h1 {
@@ -31,7 +34,7 @@ h4 {
 
 h1, h2, h3, h4 {
   color: #000;
-  margin: 0 0 0.5em 0;
+  margin: 1em 0 0.5em 0;
   line-height: 1.25;
 }
 
@@ -91,6 +94,7 @@ header.page {
 }
 
 header.page ul.languageSwitcher {
+  font-size: 85%;
   margin: 0 0.5em;
   display: inline-block;
 }
@@ -113,6 +117,7 @@ header.page ul.languageSwitcher button:hover, header.page form.logout button:hov
 }
 
 header.page form.logout {
+  font-size: 85%;
   display: inline-block;
   margin: 0 0.5em;
 }
@@ -125,12 +130,10 @@ header.page form.logout button {
 nav {
   background-color: #fff;
   text-align: center;
-  min-height: calc(50px + 2em);
 }
 
 nav ul {
-  margin: 0 auto;
-  max-width: 60rem;
+  margin: 1em auto;
   display: block;
   padding: 0;
 }
@@ -164,6 +167,7 @@ nav ul li.active a:hover {
 }
 
 footer {
+  font-size: 85%;
   background-color: #222;
 }
 
@@ -219,6 +223,10 @@ form.frm select, form.frm input[type=text], form.frm input[type=password], form.
   display: block;
 }
 
+form.frm select {
+  -webkit-appearance: none;
+}
+
 fieldset {
   border: 0;
   margin: 1em 0;
@@ -262,7 +270,7 @@ table.tbl form.frm button {
 }
 
 main {
-  min-height: 75vh;
+  width: 100%;
   max-width: 60rem;
   background-color: #fff;
   padding: 0.5em 1em;
@@ -523,7 +531,7 @@ table.stats th.index span {
 @media screen and (min-width: 800px) {
   main {
     margin: -3em auto 0 auto;
-    padding: 2em 5em;
+    padding: 1.5em 5em;
     border-radius: 1em 1em 0 0;
   }
   header.main h1 {
