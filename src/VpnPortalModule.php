@@ -132,7 +132,7 @@ class VpnPortalModule implements ServiceModuleInterface
                     $nm = $value;
 
                 }
-                $linkin = 'localhost:8080/wg/api/'.$nm.'/clients';
+                $linkin = 'localhost:8080/user/'.$nm.'/clients';
                 $clients = $client->get($linkin);
                 $wgusers = json_decode($clients[1],true);
 
@@ -183,7 +183,7 @@ class VpnPortalModule implements ServiceModuleInterface
                         $nm = $value;
 
                     }
-                    $linkin = 'localhost:8080/wg/api/'.$nm.'/clients';
+                    $linkin = 'localhost:8080/user/'.$nm.'/clients';
                     $displayName = $request->getPostParameters('Name');
 
                     $displayInfo = $request->getPostParameters('Info');
