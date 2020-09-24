@@ -87,28 +87,17 @@ class VpnPortalModule implements ServiceModuleInterface
              * @return \LC\Common\Http\Response
              */
             function (Request $request, array $hookData) {
-                $motdMessages = $this->serverClient->getRequireArray('system_messages', ['message_type' => 'motd']);
-                if (0 === \count($motdMessages)) {
-                    $motdMessage = false;
-                } else {
-                    $motdMessage = $motdMessages[0];
-                }
-                $nm = "";
                 $client = new CurlHttpClient();
-
-               $user =  $client->get('localhost:8080/identify');
-               $wguser = json_decode($user[1],true);
-               foreach($wguser as $use => $value){
-                $nm = $value;
-               }
+                $user = $client->get('localhost:8080/identify');
+                $wguser = json_decode($user[1], true);
+                $username = $wguser['User'];
                 $userInfo = $hookData['auth'];
 
                 return new HtmlResponse(
                     $this->tpl->render(
                         'vpnPortalHomeWG',
                         [
-                            'motdMessage' => $motdMessage,
-                            'wguser' => $nm,
+                            'wguser' => $username,
                             'userdata' => $userInfo
                         ]
                     )
