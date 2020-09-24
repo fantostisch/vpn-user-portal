@@ -1,8 +1,15 @@
 # Changelog
 
-## 2.3.4 (...)
-- implement `ClientCertAuthentication`
-- fix CSS/JS cache busting
+## 2.3.5 (...)
+- update `pt_PT` translation
+- switch to new discovery files for eduVPN federation
+
+## 2.3.4 (2020-09-08)
+- support client certificate authentication (`ClientCertAuthentication`)
+- fix CSS/JS cache busting, `base.php` template changes
+- add `ECDSA` certificate support for TLSv1.2, already supported with TLSv1.3
+- display used CA Key Type on "Info" page if not the default RSA
+- small CSS style fixes, giving more space to some elements on the page
 
 ## 2.3.3 (2020-07-28)
 - update `fkooman/secookie`

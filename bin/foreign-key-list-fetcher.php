@@ -11,20 +11,22 @@ require_once dirname(__DIR__).'/vendor/autoload.php';
 $baseDir = dirname(__DIR__);
 
 use LC\Common\Config;
-use LC\Portal\ForeignKeyListFetcher;
-use LC\Portal\HttpClient\CurlHttpClient;
+use LC\Portal\Federation\CurlHttpClient;
+use LC\Portal\Federation\ForeignKeyListFetcher;
 
 try {
     $configFile = sprintf('%s/config/config.php', $baseDir);
     $config = Config::fromFile($configFile);
-
-    if (false !== $config->getSection('Api')->getItem('remoteAccess')) {
-        $config->getSection('Api')->getItem('remoteAccessList');
-        $dataDir = sprintf('%s/data', $baseDir);
-        $foreignKeyListFetcher = new ForeignKeyListFetcher($dataDir);
+    if (true === $config->getSection('Api')->optionalItem('remoteAccess')) {
+        $foreignKeyListFetcher = new ForeignKeyListFetcher($baseDir.'/data');
         $foreignKeyListFetcher->update(
             new CurlHttpClient(),
-            $config->getSection('Api')->getSection('remoteAccessList')->toArray()
+            'https://disco.eduvpn.org/v2/server_list.json',
+            [
+                'RWRtBSX1alxyGX+Xn3LuZnWUT0w//B6EmTJvgaAxBMYzlQeI+jdrO6KF', // fkooman@deic.dk
+                'RWQ68Y5/b8DED0TJ41B1LE7yAvkmavZWjDwCBUuC+Z2pP9HaSawzpEDA', // jornane@uninett.no
+                'RWQKqtqvd0R7rUDp0rWzbtYPA3towPWcLDCl7eY9pBMMI/ohCmrS0WiM', // RoSp
+            ]
         );
     }
 } catch (Exception $e) {
