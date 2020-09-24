@@ -105,7 +105,7 @@ class VpnPortalModule implements ServiceModuleInterface
 
                 return new HtmlResponse(
                     $this->tpl->render(
-                        'vpnPortalHome_WG',
+                        'vpnPortalHomeWG',
                         [
                             'motdMessage' => $motdMessage,
                             'wguser' => $nm,
@@ -138,7 +138,7 @@ class VpnPortalModule implements ServiceModuleInterface
 
              return new HtmlResponse(
                     $this->tpl->render(
-                        'vpnPortalClients_WG',
+                        'vpnPortalClientsWG',
                         [
                             'motdMessage' => $motdMessage,
                             'wguser' => $nm,
@@ -160,7 +160,7 @@ class VpnPortalModule implements ServiceModuleInterface
                 /** @var \LC\Common\Http\UserInfo */
                 return new HtmlResponse(
                     $this->tpl->render(
-                        'vpnPortalCreateClient_WG',
+                        'vpnPortalCreateClientWG',
                         [
 
                         ]
