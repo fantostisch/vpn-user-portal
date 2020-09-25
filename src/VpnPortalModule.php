@@ -89,15 +89,15 @@ class VpnPortalModule implements ServiceModuleInterface
             function (Request $request, array $hookData) {
                 $client = new CurlHttpClient();
                 $user = $client->get('localhost:8080/identify');
-                $wguser = json_decode($user[1], true);
-                $username = $wguser['User'];
+                $wgUser = json_decode($user[1], true);
+                $username = $wgUser['User'];
                 $userInfo = $hookData['auth'];
 
                 return new HtmlResponse(
                     $this->tpl->render(
-                        'vpnPortalHomeWG',
+                        'vpnPortalWGHome',
                         [
-                            'wguser' => $username,
+                            'wgUser' => $username,
                             'userdata' => $userInfo
                         ]
                     )
@@ -105,43 +105,34 @@ class VpnPortalModule implements ServiceModuleInterface
             }
         );
         $service->get(
-            '/configs',
+            '/WGConfigurations',
             /**
              * @return \LC\Common\Http\Response
              */
             function (Request $request, array $hookData) {
 
-                $userInfo = $hookData['auth'];
-                $nm = "";
-                $client = new CurlHttpClient;
-
-                $user =  $client->get('localhost:8080/identify');
-                $wguser = json_decode($user[1],true);
-                foreach($wguser as $use => $value){
-                    $nm = $value;
-
-                }
-                $linkin = 'localhost:8080/user/'.$nm.'/clients';
+                $client = new CurlHttpClient();
+                $user = $client->get('localhost:8080/identify');
+                $wgUser = json_decode($user[1], true);
+                $username = $wgUser['User'];
+                $linkin = 'localhost:8080/user/' . $username . '/clients';
                 $clients = $client->get($linkin);
-                $wgusers = json_decode($clients[1],true);
+                $wgUsers = json_decode($clients[1], true);
 
-             return new HtmlResponse(
+                return new HtmlResponse(
                     $this->tpl->render(
-                        'vpnPortalClientsWG',
+                        'vpnPortalWGConfigurations',
                         [
-                            'motdMessage' => $motdMessage,
-                            'wguser' => $nm,
-                            'wgclients' => $wgusers,
+                            'wgUser' => $username,
+                            'wgClients' => $wgUsers,
                             'userlink' => $linkin,
-
-
                         ]
                     )
                 );
             }
         );
         $service->get(
-            '/CR',
+            '/WGCreateConfiguration',
             /**
              * @return \LC\Common\Http\Response
              */
@@ -149,7 +140,7 @@ class VpnPortalModule implements ServiceModuleInterface
                 /** @var \LC\Common\Http\UserInfo */
                 return new HtmlResponse(
                     $this->tpl->render(
-                        'vpnPortalCreateClientWG',
+                        'vpnPortalWGCreateConfiguration',
                         [
 
                         ]
@@ -159,45 +150,22 @@ class VpnPortalModule implements ServiceModuleInterface
             }
         );
         $service->post(
-
-               '/createclient',
-                function(Request $request, array $hookData){
-                    $userInfo = $hookData['auth'];
-                    $createuser = new CurlHttpClient();
-                    $nm = "";
-                    $client = new CurlHttpClient;
-                    $user =  $client->get('localhost:8080/identify');
-                    $wguser = json_decode($user[1],true);
-                    foreach($wguser as $use => $value){
-                        $nm = $value;
-
-                    }
-                    $linkin = 'localhost:8080/user/'.$nm.'/clients';
-                    $displayName = $request->getPostParameters('Name');
-
-                    $displayInfo = $request->getPostParameters('Info');
-                    $wgname = null;
-                    $wginfo = null;
-                    foreach($displayName as $name){
-                            if($wgname == null and $wginfo == null) {
-                                $wgname = $name;
-                            }
-                                else if($wgname != null and $wginfo == null){
-                                    $wginfo = $name;
-                                }
-                            }
-
-
-
-
-
-                    $displayJson = json_encode(['name' => $displayName, 'info'=> $displayInfo]);
-                    $createuser->postJson($linkin,json_encode(['name' => $wgname, 'info'=> $wginfo]));
-                    return new RedirectResponse($request->getRootUri().'CR', 302);
-
-                }
-
-
+            '/WGCreateConfiguration',
+            function (Request $request, array $hookData) {
+                $createUser = new CurlHttpClient();
+                $client = new CurlHttpClient;
+                $user = $client->get('localhost:8080/identify');
+                $wgUser = json_decode($user[1], true);
+                $username = $wgUser['User'];
+                $linkin = 'localhost:8080/user/' . $username . '/clients';
+                $postParameters = $request->getPostParameters();
+                $configName = $postParameters['displayName']; //todo: filter empty name
+                $configInfo = $postParameters['displayInfo'];
+                $displayJson = json_encode(['name' => $configName, 'info' => $configInfo]);
+                $createUser->postJson($linkin, json_encode(['name' => $configName, 'info' => $configInfo]));
+                //todo: show if creating configuration was successful and show new configuration
+                return new RedirectResponse($request->getRootUri() . 'WGConfigurations', 302);
+            }
         );
         $service->get(
             '/home',
