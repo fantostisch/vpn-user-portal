@@ -10,30 +10,33 @@
 require_once dirname(__DIR__).'/vendor/autoload.php';
 $baseDir = dirname(__DIR__);
 
-use LC\Common\CliParser;
 use LC\Common\Config;
 use LC\Portal\Storage;
 
 try {
     $dataDir = sprintf('%s/data', $baseDir);
-
-    $p = new CliParser(
-        'Add a user to the portal',
-        [
-            'user' => ['the username', true, false],
-            'pass' => ['the password', true, false],
-        ]
-    );
-
-    $opt = $p->parse($argv);
-    if ($opt->hasItem('help')) {
-        echo $p->help();
-        exit(0);
+    $userId = null;
+    $userPass = null;
+    for ($i = 1; $i < $argc; ++$i) {
+        if ('--user' === $argv[$i]) {
+            if ($i + 1 < $argc) {
+                $userId = $argv[$i + 1];
+            }
+            continue;
+        }
+        if ('--pass' === $argv[$i]) {
+            if ($i + 1 < $argc) {
+                $userPass = $argv[$i + 1];
+            }
+            continue;
+        }
+        if ('--help' === $argv[$i]) {
+            echo 'SYNTAX: '.$argv[0].' [--user USER] [--pass PASS]'.PHP_EOL;
+            exit(0);
+        }
     }
 
-    if ($opt->hasItem('user')) {
-        $userId = $opt->getItem('user');
-    } else {
+    if (null === $userId) {
         echo 'User ID: ';
         $userId = trim(fgets(STDIN));
     }
@@ -42,9 +45,7 @@ try {
         throw new RuntimeException('User ID cannot be empty');
     }
 
-    if ($opt->hasItem('pass')) {
-        $userPass = $opt->getItem('pass');
-    } else {
+    if (null === $userPass) {
         echo sprintf('Setting password for user "%s"', $userId).PHP_EOL;
         // ask for password
         exec('stty -echo');
@@ -66,14 +67,14 @@ try {
     $configFile = sprintf('%s/config/config.php', $baseDir);
     $config = Config::fromFile($configFile);
 
-    if ('FormPdoAuthentication' !== $config->getItem('authMethod')) {
-        echo sprintf('WARNING: backend "%s" does NOT support adding users!', $config->getItem('authMethod')).PHP_EOL;
+    if ('FormPdoAuthentication' !== $config->requireString('authMethod')) {
+        echo sprintf('WARNING: backend "%s" does NOT support adding users!', $config->requireString('authMethod')).PHP_EOL;
     }
 
     $storage = new Storage(
         new PDO(sprintf('sqlite://%s/db.sqlite', $dataDir)),
         sprintf('%s/schema', $baseDir),
-        new DateInterval($config->getItem('sessionExpiry'))
+        new DateInterval('P90D')    // XXX code smell, not needed here!
     );
     $storage->add($userId, $userPass);
 } catch (Exception $e) {

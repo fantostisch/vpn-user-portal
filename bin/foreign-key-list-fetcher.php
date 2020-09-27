@@ -17,7 +17,7 @@ use LC\Portal\Federation\ForeignKeyListFetcher;
 try {
     $configFile = sprintf('%s/config/config.php', $baseDir);
     $config = Config::fromFile($configFile);
-    if (true === $config->getSection('Api')->optionalItem('remoteAccess')) {
+    if ($config->s('Api')->requireBool('remoteAccess', false)) {
         $foreignKeyListFetcher = new ForeignKeyListFetcher($baseDir.'/data');
         $foreignKeyListFetcher->update(
             new CurlHttpClient(),

@@ -29,21 +29,18 @@ class MellonAuthentication implements BeforeHookInterface
      */
     public function executeBefore(Request $request, array $hookData)
     {
-        /** @var string */
-        $userIdAttribute = $this->config->getItem('userIdAttribute');
-        /** @var bool|null */
-        $nameIdSerialization = $this->config->optionalItem('nameIdSerialization');
-        /** @var string|null */
-        $permissionAttribute = $this->config->optionalItem('permissionAttribute');
+        $userIdAttribute = $this->config->requireString('userIdAttribute');
+        $nameIdSerialization = $this->config->requireBool('nameIdSerialization', false);
+        $permissionAttribute = $this->config->optionalString('permissionAttribute');
 
         $userId = trim(strip_tags($request->requireHeader($userIdAttribute)));
-        if (null !== $nameIdSerialization && true === $nameIdSerialization) {
+
+        if ($nameIdSerialization) {
             if (\in_array($userIdAttribute, ['MELLON_NAME_ID', 'MELLON_urn:oid:1_3_6_1_4_1_5923_1_1_1_10'], true)) {
                 // only for NAME_ID and eduPersonTargetedID, serialize it the way Shibboleth does
                 // it by prefixing it with the IdP entityID and SP entityID
                 $idpEntityId = $request->requireHeader('MELLON_IDP');
-                /** @var string */
-                $spEntityId = $this->config->getItem('spEntityId');
+                $spEntityId = $this->config->requireString('spEntityId');
                 $userId = sprintf('%s!%s!%s', $idpEntityId, $spEntityId, $userId);
             }
         }

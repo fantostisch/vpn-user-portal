@@ -30,12 +30,11 @@ class ClientFetcher implements ClientDbInterface
      */
     public function get($clientId)
     {
-        if (false === $this->config->getSection('Api')->getSection('consumerList')->hasItem($clientId)) {
-            // if not in configuration file, check if it is in the hardcoded list
+        if (null === $clientInfoData = $this->config->s('Api')->s('consumerList')->optionalArray($clientId)) {
+            // no OAuth client with this client_id in the local configuration
             return OAuthClientInfo::getClient($clientId);
         }
-
-        $clientInfoData = $this->config->getSection('Api')->getSection('consumerList')->getItem($clientId);
+        // XXX not sure why this is here?
         $redirectUriList = [];
         if (\array_key_exists('redirect_uri_list', $clientInfoData)) {
             $redirectUriList = $clientInfoData['redirect_uri_list'];

@@ -223,7 +223,7 @@ class VpnPortalModule implements ServiceModuleInterface
                     $this->tpl->render(
                         'vpnPortalConfigurations',
                         [
-                            'expiryDate' => $this->getExpiryDate(new DateInterval($this->config->getItem('sessionExpiry'))),
+                            'expiryDate' => $this->getExpiryDate(new DateInterval($this->config->requireString('sessionExpiry'))),
                             'profileList' => $visibleProfileList,
                             'userCertificateList' => $showAll ? $userCertificateList : $manualCertificateList,
                         ]
@@ -318,7 +318,7 @@ class VpnPortalModule implements ServiceModuleInterface
                             'userInfo' => $userInfo,
                             'userPermissions' => $userPermissions,
                             'authorizedClients' => $authorizedClients,
-                            'twoFactorMethods' => $this->config->optionalItem('twoFactorMethods', ['totp']),
+                            'twoFactorMethods' => $this->config->requireArray('twoFactorMethods', ['totp']),
                             'userMessages' => $userMessages,
                             'userConnectionLogEntries' => $userConnectionLogEntries,
                             'idNameMapping' => $idNameMapping,
@@ -387,7 +387,7 @@ class VpnPortalModule implements ServiceModuleInterface
                     $this->tpl->render(
                         'vpnPortalDocumentation',
                         [
-                            'twoFactorMethods' => $this->config->optionalItem('twoFactorMethods', ['totp']),
+                            'twoFactorMethods' => $this->config->requireArray('twoFactorMethods', ['totp']),
                         ]
                     )
                 );
