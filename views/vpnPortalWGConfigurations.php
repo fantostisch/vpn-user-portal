@@ -2,11 +2,16 @@
 <?php $this->start('content'); ?>
 
 <?php if (null !== $wgConfigFile): ?>
-    <h2><?= $this->t("Configuration") //todo: allow translation to change order                              ?>
+    <h2><?= $this->t("Configuration") /* todo: allow translation to change order */ ?>
         '<?= $this->etr($newConfigName, 25); ?>' <?= $this->t('created'); ?></h2>
     <a download="<?= $this->e($wgConfigFileName); ?>"
        href="data:text/plain;charset=utf-16le;base64,<?= $this->e(base64_encode($wgConfigFile)); ?>">
         <?= $this->t('Download config'); ?></a>
+    <details>
+        <summary><?= $this->e('QR Code'); ?></summary>
+        <img alt="WireGuard config QR Code"
+             src="data:image/png;base64,<?= $this->e($qrCode); ?>">
+    </details>
 <?php endif; ?>
 
 <h2><?= $this->t('Create'); ?></h2>
@@ -47,13 +52,13 @@
                             </td>
                         </tr>
                         <tr>
-                            <th><?= $this->t('Created at'); //todo: timezone                                                                                ?></th>
+                            <th><?= $this->t('Created at'); /* todo: timezone */ ?></th>
                             <td>
                                 <?= $this->d($wgConfig['created']); ?>
                             </td>
                         </tr>
                         <tr>
-                            <th><?= $this->t('Last modified at'); //todo: timezone                                                                                ?></th>
+                            <th><?= $this->t('Last modified at'); /* todo: timezone */ ?></th>
                             <td>
                                 <?= $this->d($wgConfig['modified']); ?>
                             </td>

@@ -357,10 +357,17 @@ class VpnPortalModule implements ServiceModuleInterface
 
                 $wgConfig = $this->wgDaemonClient->creatConfig($username, $displayName, $displayInfo);
                 $wgConfigFile = WGClientConfig::get($this->wgHostName, $wgConfig->ip, $wgConfig->public_key, $wgConfig->private_key);
+                $wgConfigFileName = sprintf('%s_%s_%s.conf', $this->wgHostName, date('Ymd'), $displayName);
 
                 $wgConfigs = $this->wgDaemonClient->getConfigs($username);
 
-                $wgConfigFileName = sprintf('%s_%s_%s.conf', $this->wgHostName, date('Ymd'), $displayName);
+                $qrCode = shell_exec(
+                    sprintf(
+                        '%s -l L -m 0 -s 5 -t PNG -o - %s | base64',
+                        '/usr/bin/qrencode',
+                        escapeshellarg($wgConfigFile)
+                    )
+                );
 
                 return new HtmlResponse(
                     $this->tpl->render(
@@ -370,6 +377,7 @@ class VpnPortalModule implements ServiceModuleInterface
                             'wgConfigFileName' => $wgConfigFileName,
                             'wgConfigFile' => $wgConfigFile,
                             'newConfigName' => $wgConfig->name,
+                            'qrCode' => $qrCode,
                         ]
                     )
                 );
