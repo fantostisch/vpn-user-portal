@@ -7,26 +7,62 @@
  * SPDX-License-Identifier: AGPL-3.0+
  */
 
-namespace LC\Portal;
+namespace LC\Portal\Federation;
 
-use LC\Common\HttpClient\HttpClientInterface;
 use RuntimeException;
 
-class CurlHttpClient implements HttpClientInterface
+class WGDaemonClient
 {
     /** @var resource */
     private $curlChannel;
 
-    public function __construct()
+    /** @var string */
+    private $baseUri;
+
+    /**
+     * @param string $baseUri
+     */
+    public function __construct($baseUri)
     {
         if (false === $this->curlChannel = curl_init()) {
             throw new RuntimeException('unable to create cURL channel');
         }
+        $this->baseUri = $baseUri;
     }
 
     public function __destruct()
     {
         curl_close($this->curlChannel);
+    }
+
+    /**
+     * @param string $username
+     *
+     * @return array<WGConfig>
+     */
+    public function getConfigs($username)
+    {
+        $result = $this->get('/user/' . $username . '/configs');
+        if (200 !== $result[0]) {
+            throw new RuntimeException('Unexpected response from WireGuard Daemon');
+        }
+        return json_decode($result[1], true);
+    }
+
+    /**
+     * @param string $username
+     * @param string $name
+     * @param string $info
+     *
+     * @return WGConfig
+     */
+    public function creatConfig($username, $name, $info)
+    {
+        $result = $this->postJson('/user/' . $username . '/configs', json_encode(['name' => $name, 'info' => $info]));
+        if (200 !== $result[0]) {
+            throw new RuntimeException('Unexpected response from WireGuard Daemon');
+        }
+        return json_decode($result[1], false);
     }
 
     /**
@@ -38,7 +74,7 @@ class CurlHttpClient implements HttpClientInterface
     {
         return $this->exec(
             [
-                CURLOPT_URL => $requestUri,
+                CURLOPT_URL => $this->baseUri . $requestUri,
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_ENCODING => "",
                 CURLOPT_MAXREDIRS => 10,
@@ -50,30 +86,15 @@ class CurlHttpClient implements HttpClientInterface
 
     /**
      * @param string $requestUri
-     *
-     * @return array{0: int, 1: string}
-     */
-    public function post($requestUri, array $postData = [])
-    {
-        return $this->exec(
-            [
-                CURLOPT_URL => $requestUri,
-                CURLOPT_POSTFIELDS => http_build_query($postData),
-            ]
-        );
-    }
-
-    /**
-     * @param string $requestUri
      * @param string $jsonString
      *
      * @return array{0: int, 1: string}
      */
-    public function postJson($requestUri, $jsonString)
+    private function postJson($requestUri, $jsonString)
     {
         return $this->exec(
             [
-                CURLOPT_URL => $requestUri,
+                CURLOPT_URL => $this->baseUri . $requestUri,
                 CURLOPT_POSTFIELDS => $jsonString,
                 CURLOPT_FOLLOWLOCATION => true,
                 CURLOPT_CUSTOMREQUEST => "POST",

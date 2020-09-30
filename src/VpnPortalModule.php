@@ -24,6 +24,7 @@ use LC\Common\Http\ServiceModuleInterface;
 use LC\Common\Http\SessionInterface;
 use LC\Common\HttpClient\ServerClient;
 use LC\Common\TplInterface;
+use LC\Portal\Federation\WGDaemonClient;
 
 class VpnPortalModule implements ServiceModuleInterface
 {
@@ -48,7 +49,15 @@ class VpnPortalModule implements ServiceModuleInterface
     /** @var \DateTime */
     private $dateTime;
 
-    public function __construct(Config $config, TplInterface $tpl, ServerClient $serverClient, SessionInterface $session, Storage $storage, ClientDbInterface $clientDb)
+    /** @var \LC\Portal\Federation\WGDaemonClient */
+    private $wgDaemonClient;
+
+    /** @var string */
+    private $wgHostName;
+
+    public function __construct(Config $config, TplInterface $tpl, ServerClient $serverClient,
+                                SessionInterface $session, Storage $storage, ClientDbInterface $clientDb,
+                                WGDaemonClient $wgDaemonClient, $wgHostName)
     {
         $this->config = $config;
         $this->tpl = $tpl;
@@ -57,6 +66,8 @@ class VpnPortalModule implements ServiceModuleInterface
         $this->storage = $storage;
         $this->clientDb = $clientDb;
         $this->dateTime = new DateTime();
+        $this->wgDaemonClient = $wgDaemonClient;
+        $this->wgHostName = $wgHostName;
     }
 
     /**
@@ -78,95 +89,10 @@ class VpnPortalModule implements ServiceModuleInterface
              * @return \LC\Common\Http\Response
              */
             function (Request $request) {
-                return new RedirectResponse($request->getRootUri().'home', 302);
+                return new RedirectResponse($request->getRootUri() . 'home', 302);
             }
         );
-        $service->get(
-            '/WG',
-            /**
-             * @return \LC\Common\Http\Response
-             */
-            function (Request $request, array $hookData) {
-                $client = new CurlHttpClient();
-                $user = $client->get('localhost:8080/identify');
-                $wgUser = json_decode($user[1], true);
-                $username = $wgUser['User'];
-                $userInfo = $hookData['auth'];
 
-                return new HtmlResponse(
-                    $this->tpl->render(
-                        'vpnPortalWGHome',
-                        [
-                            'wgUser' => $username,
-                            'userdata' => $userInfo
-                        ]
-                    )
-                );
-            }
-        );
-        $service->get(
-            '/WGConfigurations',
-            /**
-             * @return \LC\Common\Http\Response
-             */
-            function (Request $request, array $hookData) {
-
-                $client = new CurlHttpClient();
-                $user = $client->get('localhost:8080/identify');
-                $wgUser = json_decode($user[1], true);
-                $username = $wgUser['User'];
-                $linkin = 'localhost:8080/user/' . $username . '/clients';
-                $clients = $client->get($linkin);
-                $wgUsers = json_decode($clients[1], true);
-
-                return new HtmlResponse(
-                    $this->tpl->render(
-                        'vpnPortalWGConfigurations',
-                        [
-                            'wgUser' => $username,
-                            'wgClients' => $wgUsers,
-                            'userlink' => $linkin,
-                        ]
-                    )
-                );
-            }
-        );
-        $service->get(
-            '/WGCreateConfiguration',
-            /**
-             * @return \LC\Common\Http\Response
-             */
-            function (Request $request, array $hookData) {
-                /** @var \LC\Common\Http\UserInfo */
-                return new HtmlResponse(
-                    $this->tpl->render(
-                        'vpnPortalWGCreateConfiguration',
-                        [
-
-                        ]
-                    )
-                );
-
-            }
-        );
-        $service->post(
-            '/WGCreateConfiguration',
-            function (Request $request, array $hookData) {
-                $createUser = new CurlHttpClient();
-                $client = new CurlHttpClient;
-                $user = $client->get('localhost:8080/identify');
-                $wgUser = json_decode($user[1], true);
-                $username = $wgUser['User'];
-                $linkin = 'localhost:8080/user/' . $username . '/clients';
-                $postParameters = $request->getPostParameters();
-                $configName = $postParameters['displayName']; //todo: filter empty name
-                $configInfo = $postParameters['displayInfo'];
-                $displayJson = json_encode(['name' => $configName, 'info' => $configInfo]);
-                $createUser->postJson($linkin, json_encode(['name' => $configName, 'info' => $configInfo]));
-                //todo: show if creating configuration was successful and show new configuration
-                return new RedirectResponse($request->getRootUri() . 'WGConfigurations', 302);
-            }
-        );
         $service->get(
             '/home',
             /**
@@ -388,6 +314,62 @@ class VpnPortalModule implements ServiceModuleInterface
                         'vpnPortalDocumentation',
                         [
                             'twoFactorMethods' => $this->config->requireArray('twoFactorMethods', ['totp']),
+                        ]
+                    )
+                );
+            }
+        );
+
+        $service->get(
+            '/WGConfigurations',
+            /**
+             * @return \LC\Common\Http\Response
+             */
+            function (Request $request, array $hookData) {
+                /** @var \LC\Common\Http\UserInfo */
+                $userInfo = $hookData['auth'];
+                $username = $userInfo->getUserId();
+                $wgConfigs = $this->wgDaemonClient->getConfigs($username);
+
+                return new HtmlResponse(
+                    $this->tpl->render(
+                        'vpnPortalWGConfigurations',
+                        [
+                            'wgConfigs' => $wgConfigs,
+                        ]
+                    )
+                );
+            }
+        );
+
+        $service->post(
+            '/WGConfigurations',
+            /**
+             * @return \LC\Common\Http\Response
+             */
+            function (Request $request, array $hookData) {
+                /** @var \LC\Common\Http\UserInfo */
+                $userInfo = $hookData['auth'];
+
+                $displayName = InputValidation::displayName($request->requirePostParameter('displayName'));
+                $displayInfo = InputValidation::displayInfo($request->requirePostParameter('displayInfo'));
+                $username = $userInfo->getUserId();
+
+                $wgConfig = $this->wgDaemonClient->creatConfig($username, $displayName, $displayInfo);
+                $wgConfigFile = WGClientConfig::get($this->wgHostName, $wgConfig->ip, $wgConfig->public_key, $wgConfig->private_key);
+
+                $wgConfigs = $this->wgDaemonClient->getConfigs($username);
+
+                $wgConfigFileName = sprintf('%s_%s_%s.conf', $this->wgHostName, date('Ymd'), $displayName);
+
+                return new HtmlResponse(
+                    $this->tpl->render(
+                        'vpnPortalWGConfigurations',
+                        [
+                            'wgConfigs' => $wgConfigs,
+                            'wgConfigFileName' => $wgConfigFileName,
+                            'wgConfigFile' => $wgConfigFile,
+                            'newConfigName' => $wgConfig->name,
                         ]
                     )
                 );

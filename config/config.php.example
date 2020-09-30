@@ -181,4 +181,8 @@ return [
     'apiUser' => 'vpn-user-portal',
     'apiPass' => 'XXX-vpn-user-portal/vpn-server-api-XXX',
     'apiUri' => 'http://localhost/vpn-server-api/api.php',
+
+    // The hostname the WireGuard client(s) will connect to
+    // REQUIRED if using WireGuard
+    'wgHostName' => 'vpn.example',
 ];

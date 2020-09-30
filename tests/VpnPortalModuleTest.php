@@ -17,6 +17,7 @@ use LC\Common\Http\Request;
 use LC\Common\Http\Service;
 use LC\Common\HttpClient\ServerClient;
 use LC\Portal\ClientFetcher;
+use LC\Portal\Federation\WGDaemonClient;
 use LC\Portal\Storage;
 use LC\Portal\VpnPortalModule;
 use PDO;
@@ -32,10 +33,11 @@ class VpnPortalModuleTest extends TestCase
      */
     public function setUp()
     {
-        $schemaDir = \dirname(__DIR__).'/schema';
+        $schemaDir = \dirname(__DIR__) . '/schema';
         $serverClient = new ServerClient(new TestHttpClient(), 'serverClient');
         $storage = new Storage(new PDO('sqlite::memory:'), $schemaDir, new DateInterval('P90D'));
         $storage->init();
+        $wgDaemonClient = new WGDaemonClient("wgDaemonclient");
 
         $vpnPortalModule = new VpnPortalModule(
             new Config(['sessionExpiry' => 'P90D']),
@@ -43,7 +45,9 @@ class VpnPortalModuleTest extends TestCase
             $serverClient,
             new TestSession(),
             $storage,
-            new ClientFetcher(new Config(['Api' => []]))
+            new ClientFetcher(new Config(['Api' => []])),
+            $wgDaemonClient,
+            'wg.hostname'
         );
         $vpnPortalModule->setDateTime(new DateTime('2019-01-01'));
         $this->service = new Service();

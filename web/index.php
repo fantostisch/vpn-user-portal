@@ -36,6 +36,7 @@ use LC\Portal\AdminPortalModule;
 use LC\Portal\ClientCertAuthentication;
 use LC\Portal\ClientFetcher;
 use LC\Portal\DisabledUserHook;
+use LC\Portal\Federation\WGDaemonClient;
 use LC\Portal\FormLdapAuthentication;
 use LC\Portal\FormPdoAuthentication;
 use LC\Portal\FormRadiusAuthentication;
@@ -302,6 +303,8 @@ try {
 
     $clientFetcher = new ClientFetcher($config);
 
+    $wgDaemonClient = new WGDaemonClient($config->requireString('wgDaemonUri'));
+
     // portal module
     $vpnPortalModule = new VpnPortalModule(
         $config,
@@ -309,7 +312,9 @@ try {
         $serverClient,
         $seSession,
         $storage,
-        $clientFetcher
+        $clientFetcher,
+        $wgDaemonClient,
+        $config->requireString('wgHostName')
     );
     $service->addModule($vpnPortalModule);
 
