@@ -11,6 +11,33 @@ namespace LC\Portal\Federation;
 
 use RuntimeException;
 
+class CreateResponse
+{
+    /** @var string */
+    public $ip;
+
+    /** @var string */
+    public $clientPrivateKey;
+
+    /** @var string */
+    public $serverPublicKey;
+}
+
+class WGClientConfig
+{
+    /** @var string */
+    public $name;
+
+    /** @var string */
+    public $info;
+
+    /** @var string */
+    public $ip;
+
+    /** @var string */
+    public $modified;
+}
+
 class WGDaemonClient
 {
     /** @var resource */
@@ -38,15 +65,18 @@ class WGDaemonClient
     /**
      * @param string $username
      *
-     * @return array<WGConfig>
+     * @return array<string, WGClientConfig>
      */
     public function getConfigs($username)
     {
-        $result = $this->get('/user/' . $username . '/configs');
-        if (200 !== $result[0]) {
-            throw new RuntimeException('Unexpected response from WireGuard Daemon');
+        $result = $this->get('/user/' . $username . '/config');
+        $responseCode = $result[0];
+        $responseString = $result[1];
+        if (200 !== $responseCode) {
+            throw new RuntimeException('Unexpected response code from WireGuard Daemon: "' . $responseCode . '". Response: ' . $responseString);
         }
-        return json_decode($result[1], true);
+        /** @var array<string, WGClientConfig> */
+        return (array)json_decode($responseString, false); //todo: handle case when json can not be decoded?
     }
 
     /**
@@ -54,15 +84,17 @@ class WGDaemonClient
      * @param string $name
      * @param string $info
      *
-     * @return WGConfig
+     * @return CreateResponse
      */
     public function creatConfig($username, $name, $info)
     {
-        $result = $this->postJson('/user/' . $username . '/configs', json_encode(['name' => $name, 'info' => $info]));
-        if (200 !== $result[0]) {
-            throw new RuntimeException('Unexpected response from WireGuard Daemon');
+        $result = $this->postJson('/user/' . $username . '/config', json_encode(['name' => $name, 'info' => $info]));
+        $responseCode = $result[0];
+        $responseString = $result[1];
+        if (200 !== $responseCode) {
+            throw new RuntimeException('Unexpected response code from WireGuard Daemon: "' . $responseCode . '". Response: ' . $responseString);
         }
-        return json_decode($result[1], false);
+        return json_decode($responseString, false);
     }
 
     /**
@@ -97,7 +129,7 @@ class WGDaemonClient
                 CURLOPT_URL => $this->baseUri . $requestUri,
                 CURLOPT_POSTFIELDS => $jsonString,
                 CURLOPT_FOLLOWLOCATION => true,
-                CURLOPT_CUSTOMREQUEST => "POST",
+                CURLOPT_CUSTOMREQUEST => 'POST',
                 CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
             ]
         );
@@ -129,7 +161,7 @@ class WGDaemonClient
         }
 
         return [
-            (int) curl_getinfo($this->curlChannel, CURLINFO_HTTP_CODE),
+            (int)curl_getinfo($this->curlChannel, CURLINFO_HTTP_CODE),
             $responseData,
         ];
     }

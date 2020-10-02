@@ -55,6 +55,9 @@ class VpnPortalModule implements ServiceModuleInterface
     /** @var string */
     private $wgHostName;
 
+    /**
+     * @param string $wgHostName
+     */
     public function __construct(Config $config, TplInterface $tpl, ServerClient $serverClient,
                                 SessionInterface $session, Storage $storage, ClientDbInterface $clientDb,
                                 WGDaemonClient $wgDaemonClient, $wgHostName)
@@ -356,7 +359,7 @@ class VpnPortalModule implements ServiceModuleInterface
                 $username = $userInfo->getUserId();
 
                 $wgConfig = $this->wgDaemonClient->creatConfig($username, $displayName, $displayInfo);
-                $wgConfigFile = WGClientConfig::get($this->wgHostName, $wgConfig->ip, $wgConfig->public_key, $wgConfig->private_key);
+                $wgConfigFile = WGClientConfigGenerator::get($this->wgHostName, $wgConfig->ip, $wgConfig->serverPublicKey, $wgConfig->clientPrivateKey);
                 $wgConfigFileName = sprintf('%s_%s_%s.conf', $this->wgHostName, date('Ymd'), $displayName);
 
                 $wgConfigs = $this->wgDaemonClient->getConfigs($username);
@@ -376,7 +379,7 @@ class VpnPortalModule implements ServiceModuleInterface
                             'wgConfigs' => $wgConfigs,
                             'wgConfigFileName' => $wgConfigFileName,
                             'wgConfigFile' => $wgConfigFile,
-                            'newConfigName' => $wgConfig->name,
+                            'newConfigName' => $displayName,
                             'qrCode' => $qrCode,
                         ]
                     )

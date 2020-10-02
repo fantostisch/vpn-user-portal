@@ -1,7 +1,19 @@
-<?php $this->layout('base', ['activeItem' => 'WGConfigurations', 'pageTitle' => $this->t('WireGuard Configurations')]); ?>
-<?php $this->start('content'); ?>
+<?php
 
-<?php if (null !== $wgConfigFile): ?>
+use LC\Portal\Federation\WGClientConfig;
+
+/* @var LC\Portal\Tpl $this */
+$this->layout('base', ['activeItem' => 'WGConfigurations', 'pageTitle' => $this->t('WireGuard Configurations')]);
+$this->start('content');
+
+/* @var array<string, WGClientConfig> $wgConfigs
+ * @var string|null $wgConfigFileName
+ * @var string|null $wgConfigFile
+ * @var string|null $newConfigName
+ * @var string|null $qrCode
+ */ ?>
+
+<? if (null !== $wgConfigFile): ?>
     <h2><?= $this->t("Configuration") /* todo: allow translation to change order */ ?>
         '<?= $this->etr($newConfigName, 25); ?>' <?= $this->t('created'); ?></h2>
     <a download="<?= $this->e($wgConfigFileName); ?>"
@@ -12,7 +24,7 @@
         <img alt="WireGuard config QR Code"
              src="data:image/png;base64,<?= $this->e($qrCode); ?>">
     </details>
-<?php endif; ?>
+<? endif; ?>
 
 <h2><?= $this->t('Create'); ?></h2>
 <p>
@@ -34,52 +46,46 @@
     </fieldset>
 </form>
 
-<?php if (0 !== count($wgConfigs)): ?>
+<? if (0 !== count($wgConfigs)): ?>
     <h2><?= $this->t('Existing'); ?></h2>
 
     <ul class="profileList">
-        <?php foreach ($wgConfigs as $wgConfig): ?>
+        <? foreach ($wgConfigs as $publicKey => $wgConfig): ?>
             <li>
                 <details>
                     <summary
-                            title="<?= $this->e($wgConfig['name']); ?>"><?= $this->etr($wgConfig['name'], 25); ?></summary>
+                            title="<?= $this->e($wgConfig->name); ?>"><?= $this->etr($wgConfig->name, 25); ?></summary>
                     <table class="tbl">
                         <tbody>
                         <tr>
                             <th><?= $this->t('Info'); ?></th>
                             <td>
-                                <?= $this->e($wgConfig['info']); ?>
-                            </td>
-                        </tr>
-                        <tr>
-                            <th><?= $this->t('Created at'); /* todo: timezone */ ?></th>
-                            <td>
-                                <?= $this->d($wgConfig['created']); ?>
+                                <?= $this->e($wgConfig->info); ?>
                             </td>
                         </tr>
                         <tr>
                             <th><?= $this->t('Last modified at'); /* todo: timezone */ ?></th>
                             <td>
-                                <?= $this->d($wgConfig['modified']); ?>
+                                <?= $this->d($wgConfig->modified); ?>
                             </td>
                         </tr>
                         <tr>
                             <th><?= $this->t('IP Address'); ?></th>
                             <td>
-                                <?= $this->e($wgConfig['ip']); ?>
+                                <?= $this->e($wgConfig->ip); ?>
                             </td>
                         </tr>
                         <tr>
                             <th><?= $this->t('Public key'); ?></th>
                             <td>
-                                <?= $this->e($wgConfig['public_key']); ?>
+                                <?= $this->e($publicKey); ?>
                             </td>
                         </tr>
                         </tbody>
                     </table>
                 </details>
             </li>
-        <?php endforeach; ?>
+        <? endforeach; ?>
     </ul>
-<?php endif; ?>
-<?php $this->stop('content'); ?>
+<? endif; ?>
+<? $this->stop('content'); ?>

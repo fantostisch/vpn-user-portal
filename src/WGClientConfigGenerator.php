@@ -9,7 +9,7 @@
 
 namespace LC\Portal;
 
-class WGClientConfig
+class WGClientConfigGenerator
 {
     /**
      * @param string $hostName
