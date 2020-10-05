@@ -12,6 +12,7 @@ namespace LC\Portal\Federation;
 use LC\Common\HttpClient\HttpClientInterface;
 use RuntimeException;
 
+/** @psalm-suppress MissingConstructor */
 class CreateResponse
 {
     /** @var string */
@@ -24,6 +25,7 @@ class CreateResponse
     public $serverPublicKey;
 }
 
+/** @psalm-suppress MissingConstructor */
 class WGClientConfig
 {
     /** @var string */
