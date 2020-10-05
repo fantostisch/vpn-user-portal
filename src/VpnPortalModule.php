@@ -370,7 +370,7 @@ class VpnPortalModule implements ServiceModuleInterface
                         [
                             'wgConfigs' => $wgConfigs,
                             'wgConfigFileName' => $wgConfigFileName,
-                            'wgConfig' => $wgConfig,
+                            'wgConfig' => base64_encode($wgConfig),
                             'newConfigName' => $displayName,
                             'qrCodeURL' => "qr?qr_text=" . urlencode($wgConfig),
                         ]
