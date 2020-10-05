@@ -358,19 +358,11 @@ class VpnPortalModule implements ServiceModuleInterface
                 $displayInfo = InputValidation::displayInfo($request->requirePostParameter('displayInfo'));
                 $username = $userInfo->getUserId();
 
-                $wgConfig = $this->wgDaemonClient->creatConfig($username, $displayName, $displayInfo);
-                $wgConfigFile = WGClientConfigGenerator::get($this->wgHostName, $wgConfig->ip, $wgConfig->serverPublicKey, $wgConfig->clientPrivateKey);
+                $createResponse = $this->wgDaemonClient->creatConfig($username, $displayName, $displayInfo);
+                $wgConfig = WGClientConfigGenerator::get($this->wgHostName, $createResponse->ip, $createResponse->serverPublicKey, $createResponse->clientPrivateKey);
                 $wgConfigFileName = sprintf('%s_%s_%s.conf', $this->wgHostName, date('Ymd'), $displayName);
 
                 $wgConfigs = $this->wgDaemonClient->getConfigs($username);
-
-                $qrCode = shell_exec(
-                    sprintf(
-                        '%s -l L -m 0 -s 5 -t PNG -o - %s | base64',
-                        '/usr/bin/qrencode',
-                        escapeshellarg($wgConfigFile)
-                    )
-                );
 
                 return new HtmlResponse(
                     $this->tpl->render(
@@ -378,9 +370,9 @@ class VpnPortalModule implements ServiceModuleInterface
                         [
                             'wgConfigs' => $wgConfigs,
                             'wgConfigFileName' => $wgConfigFileName,
-                            'wgConfigFile' => $wgConfigFile,
+                            'wgConfig' => $wgConfig,
                             'newConfigName' => $displayName,
-                            'qrCode' => $qrCode,
+                            'qrCodeURL' => "qr?qr_text=" . urlencode($wgConfig),
                         ]
                     )
                 );

@@ -8,21 +8,21 @@ $this->start('content');
 
 /* @var array<string, WGClientConfig> $wgConfigs
  * @var string|null $wgConfigFileName
- * @var string|null $wgConfigFile
+ * @var string|null $wgConfig
  * @var string|null $newConfigName
- * @var string|null $qrCode
+ * @var string|null $qrCodeURL
  */ ?>
 
-<? if (null !== $wgConfigFile): ?>
+<? if (null !== $wgConfig): ?>
     <h2><?= $this->t("Configuration") /* todo: allow translation to change order */ ?>
         '<?= $this->etr($newConfigName, 25); ?>' <?= $this->t('created'); ?></h2>
     <a download="<?= $this->e($wgConfigFileName); ?>"
-       href="data:text/plain;charset=utf-16le;base64,<?= $this->e(base64_encode($wgConfigFile)); ?>">
+       href="data:text/plain;charset=utf-16le;base64,<?= $this->e(base64_encode($wgConfig)); ?>">
         <?= $this->t('Download config'); ?></a>
     <details>
         <summary><?= $this->e('QR Code'); ?></summary>
         <img alt="WireGuard config QR Code"
-             src="data:image/png;base64,<?= $this->e($qrCode); ?>">
+             src="<?= $this->e($qrCodeURL); ?>">
     </details>
 <? endif; ?>
 
