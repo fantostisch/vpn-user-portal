@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<files psalm-version="3.15@de6e7f324f44dde540ebe7ebd4eb481b97c86f30">
+  <file src="src/FormLdapAuthentication.php">
+    <DeprecatedMethod occurrences="1">
+      <code>optionalItem</code>
+    </DeprecatedMethod>
+  </file>
+  <file src="src/OAuthModule.php">
+    <InvalidScalarArgument occurrences="2">
+      <code>$e-&gt;getCode()</code>
+      <code>$e-&gt;getCode()</code>
+    </InvalidScalarArgument>
+  </file>
+  <file src="src/PhpSamlSpAuthentication.php">
+    <DeprecatedMethod occurrences="1">
+      <code>optionalItem</code>
+    </DeprecatedMethod>
+  </file>
+  <file src="src/Storage.php">
+    <InvalidScalarArgument occurrences="2">
+      <code>$dbHash</code>
+      <code>$authTime</code>
+    </InvalidScalarArgument>
+  </file>
+  <file src="web/index.php">
+    <ArgumentTypeCoercion occurrences="2">
+      <code>$userAuth</code>
+      <code>$userAuth</code>
+    </ArgumentTypeCoercion>
+    <DeprecatedMethod occurrences="2">
+      <code>setItem</code>
+      <code>setItem</code>
+    </DeprecatedMethod>
+  </file>
+</files>
