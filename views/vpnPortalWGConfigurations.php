@@ -13,7 +13,7 @@ $this->start('content');
  * @var string|null $qrCodeURL
  */ ?>
 
-<? if (null !== $wgConfig): ?>
+<?php if (isset($newConfigName)): ?>
     <h2><?= $this->t("Configuration") /* todo: allow translation to change order */ ?>
         '<?= $this->etr($newConfigName, 25); ?>' <?= $this->t('created'); ?></h2>
     <a download="<?= $this->e($wgConfigFileName); ?>"
@@ -24,7 +24,7 @@ $this->start('content');
         <img alt="WireGuard config QR Code"
              src="<?= $this->e($qrCodeURL); ?>">
     </details>
-<? endif; ?>
+<?php endif; ?>
 
 <h2><?= $this->t('Create'); ?></h2>
 <p>
@@ -46,11 +46,15 @@ $this->start('content');
     </fieldset>
 </form>
 
-<? if (0 !== count($wgConfigs)): ?>
+<?php if (0 !== count($wgConfigs)): ?>
     <h2><?= $this->t('Existing'); ?></h2>
 
     <ul class="profileList">
-        <? foreach ($wgConfigs as $publicKey => $wgConfig): ?>
+        <?php
+        /* @var $wgConfigs array<string, WGClientConfig>
+         * @var $wgConfig WGClientConfig
+         */
+        foreach ($wgConfigs as $publicKey => $wgConfig): ?>
             <li>
                 <details>
                     <summary
@@ -85,7 +89,7 @@ $this->start('content');
                     </table>
                 </details>
             </li>
-        <? endforeach; ?>
+        <?php endforeach; ?>
     </ul>
-<? endif; ?>
-<? $this->stop('content'); ?>
+<?php endif; ?>
+<?php $this->stop('content'); ?>
