@@ -306,7 +306,8 @@ try {
 
     $clientFetcher = new ClientFetcher($config);
 
-    $wgDaemonClient = new WGDaemonClient($config->requireString('wgDaemonUri'));
+    $wgHttpClient = new CurlHttpClient();
+    $wgDaemonClient = new WGDaemonClient($wgHttpClient, $config->requireString('wgDaemonUri'));
 
     // portal module
     $vpnPortalModule = new VpnPortalModule(

@@ -8,7 +8,7 @@ $this->start('content');
 
 /* @var array<string, WGClientConfig> $wgConfigs
  * @var string|null $wgConfigFileName
- * @var string|null $wgConfig
+ * @var string|null $wgConfigFile
  * @var string|null $newConfigName
  * @var string|null $qrCodeURL
  */ ?>
@@ -17,7 +17,7 @@ $this->start('content');
     <h2><?= $this->t("Configuration") /* todo: allow translation to change order */ ?>
         '<?= $this->etr($newConfigName, 25); ?>' <?= $this->t('created'); ?></h2>
     <a download="<?= $this->e($wgConfigFileName); ?>"
-       href="data:text/plain;charset=utf-16le;base64,<?= $this->e($wgConfig); ?>">
+       href="data:text/plain;charset=utf-16le;base64,<?= $this->e($wgConfigFile); ?>">
         <?= $this->t('Download config'); ?></a>
     <details>
         <summary><?= $this->e('QR Code'); ?></summary>

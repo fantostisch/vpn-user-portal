@@ -93,12 +93,12 @@ class TestHttpClient implements HttpClientInterface
     /**
      * @param string               $requestUrl
      * @param array<string,string> $queryParameters
-     * @param array<string,string> $postData
+     * @param string $postData
      * @param array<string>        $requestHeaders
      *
      * @return HttpClientResponse
      */
-    public function post($requestUrl, array $queryParameters, array $postData, array $requestHeaders = [])
+    public function post($requestUrl, array $queryParameters, $postData, array $requestHeaders = [])
     {
         if (0 !== \count($queryParameters)) {
             $requestUrl .= '?'.http_build_query($queryParameters);

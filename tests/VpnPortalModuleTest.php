@@ -37,7 +37,7 @@ class VpnPortalModuleTest extends TestCase
         $serverClient = new ServerClient(new TestHttpClient(), 'serverClient');
         $storage = new Storage(new PDO('sqlite::memory:'), $schemaDir, new DateInterval('P90D'));
         $storage->init();
-        $wgDaemonClient = new WGDaemonClient("wgDaemonclient");
+        $wgDaemonClient = new WGDaemonClient(new TestHttpClient(), "wgDaemonclient");
 
         $vpnPortalModule = new VpnPortalModule(
             new Config(['sessionExpiry' => 'P90D']),
