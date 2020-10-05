@@ -12,35 +12,6 @@ namespace LC\Portal\WireGuard;
 use LC\Common\HttpClient\HttpClientInterface;
 use RuntimeException;
 
-/** @psalm-suppress MissingConstructor */
-class CreateResponse
-{
-    /** @var string */
-    public $ip;
-
-    /** @var string */
-    public $clientPrivateKey;
-
-    /** @var string */
-    public $serverPublicKey;
-}
-
-/** @psalm-suppress MissingConstructor */
-class WGClientConfig
-{
-    /** @var string */
-    public $name;
-
-    /** @var string */
-    public $info;
-
-    /** @var string */
-    public $ip;
-
-    /** @var string */
-    public $modified;
-}
-
 class WGDaemonClient
 {
     /** @var HttpClientInterface */
