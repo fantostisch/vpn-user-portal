@@ -24,7 +24,8 @@ use LC\Common\Http\ServiceModuleInterface;
 use LC\Common\Http\SessionInterface;
 use LC\Common\HttpClient\ServerClient;
 use LC\Common\TplInterface;
-use LC\Portal\Federation\WGDaemonClient;
+use LC\Portal\WireGuard\WGClientConfigGenerator;
+use LC\Portal\WireGuard\WGDaemonClient;
 
 class VpnPortalModule implements ServiceModuleInterface
 {
@@ -49,7 +50,7 @@ class VpnPortalModule implements ServiceModuleInterface
     /** @var \DateTime */
     private $dateTime;
 
-    /** @var \LC\Portal\Federation\WGDaemonClient */
+    /** @var \LC\Portal\WireGuard\WGDaemonClient */
     private $wgDaemonClient;
 
     /** @var string */

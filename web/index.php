@@ -36,7 +36,6 @@ use LC\Portal\AdminPortalModule;
 use LC\Portal\ClientCertAuthentication;
 use LC\Portal\ClientFetcher;
 use LC\Portal\DisabledUserHook;
-use LC\Portal\Federation\WGDaemonClient;
 use LC\Portal\FormLdapAuthentication;
 use LC\Portal\FormPdoAuthentication;
 use LC\Portal\FormRadiusAuthentication;
@@ -54,6 +53,7 @@ use LC\Portal\Tpl;
 use LC\Portal\TwoFactorEnrollModule;
 use LC\Portal\UpdateSessionInfoHook;
 use LC\Portal\VpnPortalModule;
+use LC\Portal\WireGuard\WGDaemonClient;
 
 $logger = new Logger('vpn-user-portal');
 

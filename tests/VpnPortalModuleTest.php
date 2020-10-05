@@ -17,9 +17,9 @@ use LC\Common\Http\Request;
 use LC\Common\Http\Service;
 use LC\Common\HttpClient\ServerClient;
 use LC\Portal\ClientFetcher;
-use LC\Portal\Federation\WGDaemonClient;
 use LC\Portal\Storage;
 use LC\Portal\VpnPortalModule;
+use LC\Portal\WireGuard\WGDaemonClient;
 use PDO;
 use PHPUnit\Framework\TestCase;
 

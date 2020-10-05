@@ -7,7 +7,7 @@
  * SPDX-License-Identifier: AGPL-3.0+
  */
 
-namespace LC\Portal\Federation;
+namespace LC\Portal\WireGuard;
 
 use LC\Common\HttpClient\HttpClientInterface;
 use RuntimeException;
