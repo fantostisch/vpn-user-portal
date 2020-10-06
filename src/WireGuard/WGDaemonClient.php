@@ -55,11 +55,7 @@ class WGDaemonClient
      */
     public function creatConfig($username, $name)
     {
-        $createRequest = json_encode(['name' => $name]);
-        if (false === $createRequest) {
-            throw new RuntimeException('Error encoding name or info.');
-        }
-        $result = $this->httpClient->post($this->baseUrl.'/user/'.$username.'/config', [], $createRequest, ['Content-Type: application/json']);
+        $result = $this->httpClient->post($this->baseUrl.'/user/'.$username.'/config', [], ['name' => $name]);
         $responseCode = $result->getCode();
         $responseString = $result->getBody();
         if (200 !== $responseCode) {
