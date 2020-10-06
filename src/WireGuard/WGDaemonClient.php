@@ -36,14 +36,15 @@ class WGDaemonClient
      */
     public function getConfigs($username)
     {
-        $result = $this->httpClient->get($this->baseUrl . '/user/' . $username . '/config', []);
+        $result = $this->httpClient->get($this->baseUrl.'/user/'.$username.'/config', []);
         $responseCode = $result->getCode();
         $responseString = $result->getBody();
         if (200 !== $responseCode) {
-            throw new RuntimeException('Unexpected response code from WireGuard Daemon: "' . $responseCode . '". Response: ' . $responseString);
+            throw new RuntimeException('Unexpected response code from WireGuard Daemon: "'.$responseCode.'". Response: '.$responseString);
         }
-        /** @var array<string, WGClientConfig> */
-        return (array)json_decode($responseString, false); //todo: handle case when json can not be decoded?
+
+        /* @var array<string, WGClientConfig> */
+        return (array) json_decode($responseString, false); //todo: handle case when json can not be decoded?
     }
 
     /**
@@ -57,14 +58,15 @@ class WGDaemonClient
     {
         $createRequest = json_encode(['name' => $name, 'info' => $info]);
         if (false === $createRequest) {
-            throw new RuntimeException("Error encoding name or info.");
+            throw new RuntimeException('Error encoding name or info.');
         }
-        $result = $this->httpClient->post($this->baseUrl . '/user/' . $username . '/config', [], $createRequest, ['Content-Type: application/json']);
+        $result = $this->httpClient->post($this->baseUrl.'/user/'.$username.'/config', [], $createRequest, ['Content-Type: application/json']);
         $responseCode = $result->getCode();
         $responseString = $result->getBody();
         if (200 !== $responseCode) {
-            throw new RuntimeException('Unexpected response code from WireGuard Daemon: "' . $responseCode . '". Response: ' . $responseString);
+            throw new RuntimeException('Unexpected response code from WireGuard Daemon: "'.$responseCode.'". Response: '.$responseString);
         }
+
         return json_decode($responseString, false);
     }
 }

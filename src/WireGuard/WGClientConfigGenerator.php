@@ -16,20 +16,21 @@ class WGClientConfigGenerator
      * @param string $clientIp
      * @param string $serverPublicKey
      * @param string $clientPrivateKey
+     *
      * @return string
      */
     public static function get($hostName, $clientIp, $serverPublicKey, $clientPrivateKey)
     {
         $clientConfig = [
             '[Interface]',
-            'PrivateKey = ' . $clientPrivateKey,
+            'PrivateKey = '.$clientPrivateKey,
             'DNS = 8.8.8.8', //todo
-            'Address = ' . $clientIp,
+            'Address = '.$clientIp,
             '',
             '[Peer]',
-            'PublicKey = ' . $serverPublicKey,
+            'PublicKey = '.$serverPublicKey,
             'AllowedIPs = 0.0.0.0/0',
-            'Endpoint = ' . $hostName . ':51820',
+            'Endpoint = '.$hostName.':51820',
             PHP_EOL,
         ];
 

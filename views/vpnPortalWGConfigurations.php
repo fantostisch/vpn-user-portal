@@ -14,7 +14,7 @@ $this->start('content');
  */ ?>
 
 <?php if (isset($newConfigName)): ?>
-    <h2><?= $this->t("Configuration") /* todo: allow translation to change order */ ?>
+    <h2><?= $this->t('Configuration'); /* todo: allow translation to change order */ ?>
         '<?= $this->etr($newConfigName, 25); ?>' <?= $this->t('created'); ?></h2>
     <a download="<?= $this->e($wgConfigFileName); ?>"
        href="data:text/plain;charset=utf-16le;base64,<?= $this->e($wgConfigFile); ?>">

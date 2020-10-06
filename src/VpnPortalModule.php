@@ -93,7 +93,7 @@ class VpnPortalModule implements ServiceModuleInterface
              * @return \LC\Common\Http\Response
              */
             function (Request $request) {
-                return new RedirectResponse($request->getRootUri() . 'home', 302);
+                return new RedirectResponse($request->getRootUri().'home', 302);
             }
         );
 
@@ -373,7 +373,7 @@ class VpnPortalModule implements ServiceModuleInterface
                             'wgConfigFileName' => $wgConfigFileName,
                             'wgConfigFile' => base64_encode($wgConfigFile),
                             'newConfigName' => $displayName,
-                            'qrCodeURL' => "qr?qr_text=" . urlencode($wgConfigFile),
+                            'qrCodeURL' => 'qr?qr_text='.urlencode($wgConfigFile),
                         ]
                     )
                 );
