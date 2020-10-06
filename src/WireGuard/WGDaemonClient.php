@@ -50,13 +50,12 @@ class WGDaemonClient
     /**
      * @param string $username
      * @param string $name
-     * @param string $info
      *
      * @return CreateResponse
      */
-    public function creatConfig($username, $name, $info)
+    public function creatConfig($username, $name)
     {
-        $createRequest = json_encode(['name' => $name, 'info' => $info]);
+        $createRequest = json_encode(['name' => $name]);
         if (false === $createRequest) {
             throw new RuntimeException('Error encoding name or info.');
         }

@@ -16,9 +16,6 @@ class WGClientConfig
     public $name;
 
     /** @var string */
-    public $info;
-
-    /** @var string */
     public $ip;
 
     /** @var string */

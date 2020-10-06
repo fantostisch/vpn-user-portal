@@ -37,9 +37,6 @@ $this->start('content');
         <label for="displayName"><?= $this->t('Name'); ?></label>
         <input type="text" name="displayName" id="displayName" size="32" maxlength="64"
                placeholder="<?= $this->t('Name'); ?>" autofocus required>
-        <label for="displayInfo"><?= $this->t('Info'); ?></label>
-        <input type="text" name="displayInfo" id="displayInfo" size="32"
-               placeholder="<?= $this->t('Info'); ?>" autofocus required>
     </fieldset>
     <fieldset>
         <button type="submit"><?= $this->t('Create'); ?></button>
@@ -61,12 +58,6 @@ $this->start('content');
                             title="<?= $this->e($wgConfig->name); ?>"><?= $this->etr($wgConfig->name, 25); ?></summary>
                     <table class="tbl">
                         <tbody>
-                        <tr>
-                            <th><?= $this->t('Info'); ?></th>
-                            <td>
-                                <?= $this->e($wgConfig->info); ?>
-                            </td>
-                        </tr>
                         <tr>
                             <th><?= $this->t('Last modified at'); /* todo: timezone */ ?></th>
                             <td>
