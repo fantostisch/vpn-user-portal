@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<files psalm-version="3.15@de6e7f324f44dde540ebe7ebd4eb481b97c86f30">
+<files psalm-version="3.16@d03e5ef057d6adc656c0ff7e166c50b73b4f48f3">
   <file src="src/FormLdapAuthentication.php">
     <DeprecatedMethod occurrences="1">
       <code>optionalItem</code>
@@ -17,9 +17,11 @@
     </DeprecatedMethod>
   </file>
   <file src="src/Storage.php">
-    <InvalidScalarArgument occurrences="2">
-      <code>$dbHash</code>
+    <InvalidScalarArgument occurrences="4">
       <code>$authTime</code>
+      <code>$dbHash</code>
+      <code>PASSWORD_DEFAULT</code>
+      <code>PASSWORD_DEFAULT</code>
     </InvalidScalarArgument>
   </file>
   <file src="web/index.php">
