@@ -36,7 +36,7 @@ class WGDaemonClient
      */
     public function getConfigs($username)
     {
-        $result = $this->httpClient->get($this->baseUrl.'/user/'.$username.'/config', []);
+        $result = $this->httpClient->get($this->baseUrl.'/config', ['user_id' => $username]);
         $responseCode = $result->getCode();
         $responseString = $result->getBody();
         if (200 !== $responseCode) {
@@ -55,7 +55,7 @@ class WGDaemonClient
      */
     public function creatConfig($username, $name)
     {
-        $result = $this->httpClient->post($this->baseUrl.'/user/'.$username.'/config', [], ['name' => $name]);
+        $result = $this->httpClient->post($this->baseUrl.'/config', ['user_id' => $username], ['name' => $name]);
         $responseCode = $result->getCode();
         $responseString = $result->getBody();
         if (200 !== $responseCode) {
