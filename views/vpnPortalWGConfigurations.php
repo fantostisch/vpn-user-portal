@@ -1,6 +1,6 @@
 <?php
 
-use LC\Portal\Federation\WGClientConfig;
+use LC\Portal\WireGuard\WGClientConfig;
 
 /* @var LC\Portal\Tpl $this */
 $this->layout('base', ['activeItem' => 'WGConfigurations', 'pageTitle' => $this->t('WireGuard Configurations')]);
