@@ -325,7 +325,8 @@ try {
     $adminPortalModule = new AdminPortalModule(
         $tpl,
         $storage,
-        $serverClient
+        $serverClient,
+        $wgDaemonClient
     );
     $service->addModule($adminPortalModule);
 

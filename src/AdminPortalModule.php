@@ -22,6 +22,7 @@ use LC\Common\Http\Service;
 use LC\Common\Http\ServiceModuleInterface;
 use LC\Common\HttpClient\ServerClient;
 use LC\Common\TplInterface;
+use LC\Portal\WireGuard\WGDaemonClient;
 
 class AdminPortalModule implements ServiceModuleInterface
 {
@@ -37,12 +38,16 @@ class AdminPortalModule implements ServiceModuleInterface
     /** @var \DateTime */
     private $dateTime;
 
-    public function __construct(TplInterface $tpl, Storage $storage, ServerClient $serverClient)
+    /** @var \LC\Portal\WireGuard\WGDaemonClient */
+    private $wgDaemonClient;
+
+    public function __construct(TplInterface $tpl, Storage $storage, ServerClient $serverClient, WGDaemonClient $wgDaemonClient)
     {
         $this->tpl = $tpl;
         $this->storage = $storage;
         $this->serverClient = $serverClient;
         $this->dateTime = new DateTime();
+        $this->wgDaemonClient = $wgDaemonClient;
     }
 
     /**
@@ -209,10 +214,14 @@ class AdminPortalModule implements ServiceModuleInterface
                                 $this->serverClient->post('kill_client', ['common_name' => $clientInfo['common_name']]);
                             }
                         }
+
+                        $this->wgDaemonClient->disableUser($userId);
+
                         break;
 
                     case 'enableUser':
                         $this->serverClient->post('enable_user', ['user_id' => $userId]);
+                        $this->wgDaemonClient->enableUser($userId);
                         break;
 
                     case 'deleteTotpSecret':

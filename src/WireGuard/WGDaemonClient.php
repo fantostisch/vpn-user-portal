@@ -39,9 +39,7 @@ class WGDaemonClient
         $result = $this->httpClient->get($this->baseUrl.'/config', ['user_id' => $username]);
         $responseCode = $result->getCode();
         $responseString = $result->getBody();
-        if (200 !== $responseCode) {
-            throw new RuntimeException('Unexpected response code from WireGuard Daemon: "'.$responseCode.'". Response: '.$responseString);
-        }
+        $this->assertResponseCode([200], $responseCode, $responseString);
 
         /* @var array<string, WGClientConfig> */
         return (array) json_decode($responseString, false); //todo: handle case when json can not be decoded?
@@ -58,10 +56,48 @@ class WGDaemonClient
         $result = $this->httpClient->post($this->baseUrl.'/config', ['user_id' => $username], ['name' => $name]);
         $responseCode = $result->getCode();
         $responseString = $result->getBody();
-        if (200 !== $responseCode) {
-            throw new RuntimeException('Unexpected response code from WireGuard Daemon: "'.$responseCode.'". Response: '.$responseString);
-        }
+        $this->assertResponseCode([200], $responseCode, $responseString);
 
         return json_decode($responseString, false);
+    }
+
+    /**
+     * @param string $username
+     *
+     * @return void
+     */
+    public function disableUser($username)
+    {
+        $result = $this->httpClient->post($this->baseUrl.'/disable_user', ['user_id' => $username], []);
+        $responseCode = $result->getCode();
+        $responseString = $result->getBody();
+        $this->assertResponseCode([200], $responseCode, $responseString);
+    }
+
+    /**
+     * @param string $username
+     *
+     * @return void
+     */
+    public function enableUser($username)
+    {
+        $result = $this->httpClient->post($this->baseUrl.'/enable_user', ['user_id' => $username], []);
+        $responseCode = $result->getCode();
+        $responseString = $result->getBody();
+        $this->assertResponseCode([200, 419], $responseCode, $responseString);
+    }
+
+    /**
+     * @param array<int> $expected
+     * @param int        $responseCode
+     * @param string     $responseString
+     *
+     * @return void
+     */
+    private function assertResponseCode($expected, $responseCode, $responseString)
+    {
+        if (!\in_array($responseCode, $expected, true)) {
+            throw new RuntimeException('Unexpected response code from WireGuard Daemon: "'.$responseCode.'". Response: '.$responseString);
+        }
     }
 }
