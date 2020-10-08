@@ -1,5 +1,8 @@
-<?php $this->layout('base', ['activeItem' => 'users', 'pageTitle' => $this->t('Users')]); ?>
-<?php $this->start('content'); ?>
+<?php use LC\Portal\WireGuard\WGClientConfig;
+
+$this->layout('base', ['activeItem' => 'users', 'pageTitle' => $this->t('Users')]);
+$this->start('content'); ?>
+
     <p>
         <?=$this->t('Managing user <code>%userId%</code>.'); ?>
     </p>
@@ -40,6 +43,32 @@
                 <tr>
                     <td><span title="<?=$this->e($clientCertificate['display_name']); ?>"><?=$this->etr($clientCertificate['display_name'], 25); ?></span></td>
                     <td><?=$this->d($clientCertificate['valid_to']); ?></td>
+                </tr>
+            <?php endforeach; ?>
+            </tbody>
+        </table>
+    <?php endif; ?>
+
+    <h2><?=$this->t('WireGuard Configurations'); ?></h2>
+
+    <?php if (0 === count($wgConfigs)): ?>
+        <p class="plain">
+            <?=$this->t('This user does not have any WireGuard configurations.'); ?>
+        </p>
+    <?php else: ?>
+        <table class="tbl">
+            <thead>
+            <tr><th><?=$this->t('Name'); ?></th><th><?=$this->t('Last modified at'); ?> <?php /* todo: timezone */ ?></th></tr>
+            </thead>
+            <tbody>
+            <?php
+            /* @var $wgConfigs array<string, WGClientConfig>
+             * @var $wgConfig WGClientConfig
+             */
+            foreach ($wgConfigs as $publicKey => $wgConfig): ?>
+                <tr>
+                    <td><span title="<?=$this->e($wgConfig->name); ?>"><?=$this->etr($wgConfig->name, 25); ?></span></td>
+                    <td><?=$this->d($wgConfig->modified); ?></td>
                 </tr>
             <?php endforeach; ?>
             </tbody>

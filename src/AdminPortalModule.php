@@ -139,6 +139,7 @@ class AdminPortalModule implements ServiceModuleInterface
                 InputValidation::userId($userId);
 
                 $clientCertificateList = $this->serverClient->getRequireArray('client_certificate_list', ['user_id' => $userId]);
+                $wgConfigs = $this->wgDaemonClient->getConfigs($userId);
                 $userMessages = $this->serverClient->getRequireArray('user_messages', ['user_id' => $userId]);
 
                 $userConnectionLogEntries = $this->serverClient->getRequireArray('user_connection_log', ['user_id' => $userId]);
@@ -158,6 +159,7 @@ class AdminPortalModule implements ServiceModuleInterface
                             'userId' => $userId,
                             'userMessages' => $userMessages,
                             'clientCertificateList' => $clientCertificateList,
+                            'wgConfigs' => $wgConfigs,
                             'hasTotpSecret' => $this->serverClient->getRequireBool('has_totp_secret', ['user_id' => $userId]),
                             'isDisabled' => $this->serverClient->getRequireBool('is_disabled_user', ['user_id' => $userId]),
                             'isSelf' => $adminUserId === $userId, // the admin is viewing their own account
