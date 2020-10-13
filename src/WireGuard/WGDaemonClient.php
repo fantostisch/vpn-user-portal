@@ -88,6 +88,21 @@ class WGDaemonClient
     }
 
     /**
+     * @psalm-type userID=string
+     *
+     * @return array<userID, array<WGClientConnection>>
+     */
+    public function getClientConnections()
+    {
+        $result = $this->httpClient->get($this->baseUrl.'/client_connections', []);
+        $responseCode = $result->getCode();
+        $responseString = $result->getBody();
+        $this->assertResponseCode([200], $responseCode, $responseString);
+
+        return (array) json_decode($responseString, false);
+    }
+
+    /**
      * @param array<int> $expected
      * @param int        $responseCode
      * @param string     $responseString

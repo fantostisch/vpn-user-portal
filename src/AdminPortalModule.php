@@ -77,6 +77,7 @@ class AdminPortalModule implements ServiceModuleInterface
                         [
                             'idNameMapping' => $idNameMapping,
                             'vpnConnections' => $this->serverClient->getRequireArray('client_connections'),
+                            'wgUserConnections' => $this->wgDaemonClient->getClientConnections(),
                         ]
                     )
                 );

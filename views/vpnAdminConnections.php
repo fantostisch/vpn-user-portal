@@ -54,4 +54,42 @@
         <?php endif; ?>
     <?php endforeach; ?>
     </details>
+<details>
+    <summary><?= count($wgUserConnections).$this->t(' WireGuard Connections...'); /* todo: number in translation */ ?></summary>
+    <?php if (0 === count($wgUserConnections)): ?>
+        <p class="plain"><?= $this->t('No clients connected.'); ?></p>
+    <?php else: ?>
+        <table class="tbl">
+            <thead>
+            <tr>
+                <th><?= $this->t('User ID'); ?></th>
+                <th><?= $this->t('Name'); ?></th>
+                <th><?= $this->t('Allowed IP Addresses'); ?></th>
+            </tr>
+            </thead>
+            <tbody>
+            <?php foreach ($wgUserConnections as $userID => $wgConnections): ?>
+                <?php foreach ($wgConnections as $wgConnection): ?>
+                    <tr>
+                        <td>
+                            <a href="<?= $this->e($requestRoot); ?>user?user_id=<?= $this->e($userID, 'rawurlencode'); ?>"
+                               title="<?= $this->e($userID); ?>"><?= $this->etr($userID, 25); ?></a>
+                        </td>
+                        <td>
+                            <span title="<?= $this->e($wgConnection->name); ?>"><?= $this->etr($wgConnection->name, 25); ?></span>
+                        </td>
+                        <td>
+                            <ul>
+                                <?php foreach ($wgConnection->allowedIPs as $ip): ?>
+                                    <li><code><?= $this->e($ip); ?></code></li>
+                                <?php endforeach; ?>
+                            </ul>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+            <?php endforeach; ?>
+            </tbody>
+        </table>
+    <?php endif; ?>
+</details>
 <?php $this->stop('content'); ?>
