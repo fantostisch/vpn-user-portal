@@ -378,6 +378,22 @@ class VpnPortalModule implements ServiceModuleInterface
                 );
             }
         );
+
+        $service->post(
+            '/deleteWGConfig',
+            /**
+             * @return \LC\Common\Http\Response
+             */
+            function (Request $request, array $hookData) {
+                /** @var \LC\Common\Http\UserInfo */
+                $userInfo = $hookData['auth'];
+
+                $publicKey = $request->requirePostParameter('publicKey');
+                $this->wgDaemonClient->deleteConfig($userInfo->getUserId(), $publicKey);
+
+                return new RedirectResponse($request->getRootUri().'WGConfigurations', 302);
+            }
+        );
     }
 
     /**

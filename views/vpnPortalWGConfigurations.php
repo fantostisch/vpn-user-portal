@@ -76,6 +76,14 @@ $this->start('content');
                                 <?= $this->e($publicKey); ?>
                             </td>
                         </tr>
+                        <tr>
+                            <th>
+                                <form class="frm" method="post" action="deleteWGConfig">
+                                    <input type="hidden" name="publicKey" value="<?= $this->e($publicKey); ?>">
+                                    <button class="warning" type="submit"><?= $this->t('Delete'); ?></button>
+                                </form>
+                            </th>
+                        </tr>
                         </tbody>
                     </table>
                 </details>

@@ -63,6 +63,20 @@ class WGDaemonClient
 
     /**
      * @param string $username
+     * @param string $publicKey
+     *
+     * @return void
+     */
+    public function deleteConfig($username, $publicKey)
+    {
+        $result = $this->httpClient->delete($this->baseUrl.'/config', ['user_id' => $username, 'public_key' => $publicKey], []);
+        $responseCode = $result->getCode();
+        $responseString = $result->getBody();
+        $this->assertResponseCode([200, 409], $responseCode, $responseString);
+    }
+
+    /**
+     * @param string $username
      *
      * @return void
      */
