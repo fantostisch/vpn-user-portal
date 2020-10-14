@@ -59,7 +59,7 @@ $this->start('content');
                     <table class="tbl">
                         <tbody>
                         <tr>
-                            <th><?= $this->t('Last modified at'); /* todo: timezone */ ?></th>
+                            <th><?= $this->t('Last modified at'); ?> (<?= $this->e(date('T')); ?>)</th>
                             <td>
                                 <?= $this->d($wgConfig->modified); ?>
                             </td>

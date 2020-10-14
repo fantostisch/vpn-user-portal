@@ -58,7 +58,7 @@ $this->start('content'); ?>
     <?php else: ?>
         <table class="tbl">
             <thead>
-            <tr><th><?=$this->t('Name'); ?></th><th><?=$this->t('Last modified at'); ?> <?php /* todo: timezone */ ?></th></tr>
+            <tr><th><?=$this->t('Name'); ?></th><th><?=$this->t('Last modified at'); ?> (<?=$this->e(date('T')); ?>)</th></tr>
             </thead>
             <tbody>
             <?php
