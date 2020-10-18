@@ -185,4 +185,8 @@ return [
     // The hostname the WireGuard client(s) will connect to
     // REQUIRED if using WireGuard
     'wgHostName' => 'vpn.example',
+
+    // Uri of the WireGuard Daemon
+    // REQUIRED if using WireGuard
+    'wgDaemonUri' => 'http://localhost:8080',
 ];
