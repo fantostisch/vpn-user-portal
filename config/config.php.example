@@ -182,11 +182,14 @@ return [
     'apiPass' => 'XXX-vpn-user-portal/vpn-server-api-XXX',
     'apiUri' => 'http://localhost/vpn-server-api/api.php',
 
-    // The hostname the WireGuard client(s) will connect to
-    // REQUIRED if using WireGuard
-    'wgHostName' => 'vpn.example',
+    'WireGuard' => [
+        // The hostname the WireGuard client(s) will connect to
+        'hostName' => 'vpn.example',
 
-    // Uri of the WireGuard Daemon
-    // REQUIRED if using WireGuard
-    'wgDaemonUri' => 'http://localhost:8080',
+        // The port the WireGuard client(s) will connect to
+        'port' => 51820,
+
+        // Uri of the WireGuard Daemon
+        'daemonUri' => 'http://localhost:8080',
+    ]
 ];

@@ -56,13 +56,24 @@ class VpnPortalModule implements ServiceModuleInterface
     /** @var string */
     private $wgHostName;
 
+    /** @var int */
+    private $wgPort;
+
     /**
      * @param string $wgHostName
+     * @param int    $wgPort
      */
-    public function __construct(Config $config, TplInterface $tpl, ServerClient $serverClient,
-                                SessionInterface $session, Storage $storage, ClientDbInterface $clientDb,
-                                WGDaemonClient $wgDaemonClient, $wgHostName)
-    {
+    public function __construct(
+        Config $config,
+        TplInterface $tpl,
+        ServerClient $serverClient,
+        SessionInterface $session,
+        Storage $storage,
+        ClientDbInterface $clientDb,
+        WGDaemonClient $wgDaemonClient,
+        $wgHostName,
+        $wgPort
+    ) {
         $this->config = $config;
         $this->tpl = $tpl;
         $this->serverClient = $serverClient;
@@ -72,6 +83,7 @@ class VpnPortalModule implements ServiceModuleInterface
         $this->dateTime = new DateTime();
         $this->wgDaemonClient = $wgDaemonClient;
         $this->wgHostName = $wgHostName;
+        $this->wgPort = $wgPort;
     }
 
     /**
@@ -359,7 +371,13 @@ class VpnPortalModule implements ServiceModuleInterface
                 $username = $userInfo->getUserId();
 
                 $createResponse = $this->wgDaemonClient->creatConfig($username, $displayName);
-                $wgConfigFile = WGClientConfigGenerator::get($this->wgHostName, $createResponse->ip, $createResponse->serverPublicKey, $createResponse->clientPrivateKey);
+                $wgConfigFile = WGClientConfigGenerator::get(
+                    $this->wgHostName,
+                    $this->wgPort,
+                    $createResponse->ip,
+                    $createResponse->serverPublicKey,
+                    $createResponse->clientPrivateKey
+                );
                 $wgConfigFileName = sprintf('%s_%s_%s.conf', $this->wgHostName, date('Ymd'), $displayName);
 
                 $wgConfigs = $this->wgDaemonClient->getConfigs($username);

@@ -13,13 +13,14 @@ class WGClientConfigGenerator
 {
     /**
      * @param string $hostName
+     * @param int    $port
      * @param string $clientIp
      * @param string $serverPublicKey
      * @param string $clientPrivateKey
      *
      * @return string
      */
-    public static function get($hostName, $clientIp, $serverPublicKey, $clientPrivateKey)
+    public static function get($hostName, $port, $clientIp, $serverPublicKey, $clientPrivateKey)
     {
         $clientConfig = [
             '[Interface]',
@@ -30,7 +31,7 @@ class WGClientConfigGenerator
             '[Peer]',
             'PublicKey = '.$serverPublicKey,
             'AllowedIPs = 0.0.0.0/0',
-            'Endpoint = '.$hostName.':51820',
+            'Endpoint = '.$hostName.':'.$port,
             PHP_EOL,
         ];
 

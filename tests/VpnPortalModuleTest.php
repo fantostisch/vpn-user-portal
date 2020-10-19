@@ -47,7 +47,8 @@ class VpnPortalModuleTest extends TestCase
             $storage,
             new ClientFetcher(new Config(['Api' => []])),
             $wgDaemonClient,
-            'wg.hostname'
+            'wg.hostname',
+            51820
         );
         $vpnPortalModule->setDateTime(new DateTime('2019-01-01'));
         $this->service = new Service();

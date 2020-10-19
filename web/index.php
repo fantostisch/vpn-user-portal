@@ -306,8 +306,10 @@ try {
 
     $clientFetcher = new ClientFetcher($config);
 
+    $wgConfig = $config->s('WireGuard');
+
     $wgHttpClient = new CurlHttpClient();
-    $wgDaemonClient = new WGDaemonClient($wgHttpClient, $config->requireString('wgDaemonUri'));
+    $wgDaemonClient = new WGDaemonClient($wgHttpClient, $wgConfig->requireString('daemonUri'));
 
     // portal module
     $vpnPortalModule = new VpnPortalModule(
@@ -318,7 +320,8 @@ try {
         $storage,
         $clientFetcher,
         $wgDaemonClient,
-        $config->requireString('wgHostName')
+        $wgConfig->requireString('hostName'),
+        $wgConfig->requireInt('port')
     );
     $service->addModule($vpnPortalModule);
 
