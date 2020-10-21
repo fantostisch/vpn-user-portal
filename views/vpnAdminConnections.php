@@ -54,9 +54,9 @@
         <?php endif; ?>
     <?php endforeach; ?>
     </details>
-<?php if (!(false === $wgUserConnections)): ?>
+<?php if (isset($wgUserConnections)): ?>
     <details>
-        <summary><?= count($wgUserConnections).$this->t(' WireGuard Connections...'); /* todo: number in translation */ ?></summary>
+        <summary><?= $this->e($amountOfWGConnections).$this->t(' WireGuard Connections...'); /* todo: number in translation */ ?></summary>
         <?php if (0 === count($wgUserConnections)): ?>
             <p class="plain"><?= $this->t('No clients connected.'); ?></p>
         <?php else: ?>

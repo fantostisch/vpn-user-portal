@@ -22,6 +22,7 @@ use LC\Common\Http\Service;
 use LC\Common\Http\ServiceModuleInterface;
 use LC\Common\HttpClient\ServerClient;
 use LC\Common\TplInterface;
+use LC\Portal\WireGuard\WGClientConnection;
 use LC\Portal\WireGuard\WGEnabledConfig;
 
 class AdminPortalModule implements ServiceModuleInterface
@@ -74,14 +75,32 @@ class AdminPortalModule implements ServiceModuleInterface
                     $idNameMapping[$profileId] = $profileData['displayName'];
                 }
 
+                $templateVariables = [
+                    'idNameMapping' => $idNameMapping,
+                    'vpnConnections' => $this->serverClient->getRequireArray('client_connections'),
+                ];
+
+                if ($this->wgConfig instanceof WGEnabledConfig) {
+                    $wgUserConnections = $this->wgConfig->wgDaemonClient->getClientConnections();
+                    $amountOfWGConnections = array_reduce($wgUserConnections,
+                        /**
+                         * @param int                       $carry
+                         * @param array<WGClientConnection> $wgConnections
+                         *
+                         * @return int
+                         */
+                        function ($carry, $wgConnections) {
+                            return $carry + \count($wgConnections);
+                        }, 0);
+
+                    $templateVariables['wgUserConnections'] = $wgUserConnections;
+                    $templateVariables['amountOfWGConnections'] = $amountOfWGConnections;
+                }
+
                 return new HtmlResponse(
                     $this->tpl->render(
                         'vpnAdminConnections',
-                        [
-                            'idNameMapping' => $idNameMapping,
-                            'vpnConnections' => $this->serverClient->getRequireArray('client_connections'),
-                            'wgUserConnections' => $this->wgConfig instanceof WGEnabledConfig ? $this->wgConfig->wgDaemonClient->getClientConnections() : false,
-                        ]
+                        $templateVariables
                     )
                 );
             }
