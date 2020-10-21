@@ -1,5 +1,16 @@
 <ul>
-<?php foreach (['home' => $this->t('Home'), 'configurations' => $this->t('Configurations'), 'account' => $this->t('Account'), 'documentation' => $this->t('Documentation'), 'WGConfigurations' => $this->t('WireGuard Configurations')] as $menuKey => $menuText): ?>
+<?php
+$menuItems = [
+    'home' => $this->t('Home'),
+    'configurations' => $this->t('Configurations'),
+    'account' => $this->t('Account'),
+    'documentation' => $this->t('Documentation'),
+];
+
+if ($wireguardEnabled) {
+    $menuItems['WGConfigurations'] = $this->t('WireGuard Configurations');
+}
+foreach ($menuItems as $menuKey => $menuText): ?>
 <?php if ($menuKey === $activeItem): ?>
     <li class="active">
 <?php else: ?>

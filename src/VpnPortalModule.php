@@ -25,7 +25,6 @@ use LC\Common\Http\SessionInterface;
 use LC\Common\HttpClient\ServerClient;
 use LC\Common\TplInterface;
 use LC\Portal\WireGuard\WGClientConfigGenerator;
-use LC\Portal\WireGuard\WGDaemonClient;
 
 class VpnPortalModule implements ServiceModuleInterface
 {
@@ -50,30 +49,15 @@ class VpnPortalModule implements ServiceModuleInterface
     /** @var \DateTime */
     private $dateTime;
 
-    /** @var \LC\Portal\WireGuard\WGDaemonClient */
-    private $wgDaemonClient;
-
-    /** @var string */
-    private $wgHostName;
-
-    /** @var int */
-    private $wgPort;
+    /** @var false|\LC\Portal\WireGuard\WGEnabledConfig */
+    private $wgConfig;
 
     /**
-     * @param string $wgHostName
-     * @param int    $wgPort
+     * @param false|\LC\Portal\WireGuard\WGEnabledConfig $wgConfig
      */
-    public function __construct(
-        Config $config,
-        TplInterface $tpl,
-        ServerClient $serverClient,
-        SessionInterface $session,
-        Storage $storage,
-        ClientDbInterface $clientDb,
-        WGDaemonClient $wgDaemonClient,
-        $wgHostName,
-        $wgPort
-    ) {
+    public function __construct(Config $config, TplInterface $tpl, ServerClient $serverClient,
+                                SessionInterface $session, Storage $storage, ClientDbInterface $clientDb, $wgConfig)
+    {
         $this->config = $config;
         $this->tpl = $tpl;
         $this->serverClient = $serverClient;
@@ -81,9 +65,7 @@ class VpnPortalModule implements ServiceModuleInterface
         $this->storage = $storage;
         $this->clientDb = $clientDb;
         $this->dateTime = new DateTime();
-        $this->wgDaemonClient = $wgDaemonClient;
-        $this->wgHostName = $wgHostName;
-        $this->wgPort = $wgPort;
+        $this->wgConfig = $wgConfig;
     }
 
     /**
@@ -342,10 +324,11 @@ class VpnPortalModule implements ServiceModuleInterface
              * @return \LC\Common\Http\Response
              */
             function (Request $request, array $hookData) {
+                $wgEnabledConfig = $this->requireWireGuardEnabled($this->wgConfig);
                 /** @var \LC\Common\Http\UserInfo */
                 $userInfo = $hookData['auth'];
                 $username = $userInfo->getUserId();
-                $wgConfigs = $this->wgDaemonClient->getConfigs($username);
+                $wgConfigs = $wgEnabledConfig->wgDaemonClient->getConfigs($username);
 
                 return new HtmlResponse(
                     $this->tpl->render(
@@ -364,23 +347,24 @@ class VpnPortalModule implements ServiceModuleInterface
              * @return \LC\Common\Http\Response
              */
             function (Request $request, array $hookData) {
+                $wgEnabledConfig = $this->requireWireGuardEnabled($this->wgConfig);
                 /** @var \LC\Common\Http\UserInfo */
                 $userInfo = $hookData['auth'];
 
                 $displayName = InputValidation::displayName($request->requirePostParameter('displayName'));
                 $username = $userInfo->getUserId();
 
-                $createResponse = $this->wgDaemonClient->creatConfig($username, $displayName);
+                $createResponse = $wgEnabledConfig->wgDaemonClient->creatConfig($username, $displayName);
                 $wgConfigFile = WGClientConfigGenerator::get(
-                    $this->wgHostName,
-                    $this->wgPort,
+                    $wgEnabledConfig->wgHostName,
+                    $wgEnabledConfig->wgPort,
                     $createResponse->ip,
                     $createResponse->serverPublicKey,
                     $createResponse->clientPrivateKey
                 );
-                $wgConfigFileName = sprintf('%s_%s_%s.conf', $this->wgHostName, date('Ymd'), $displayName);
+                $wgConfigFileName = sprintf('%s_%s_%s.conf', $wgEnabledConfig->wgHostName, date('Ymd'), $displayName);
 
-                $wgConfigs = $this->wgDaemonClient->getConfigs($username);
+                $wgConfigs = $wgEnabledConfig->wgDaemonClient->getConfigs($username);
 
                 return new HtmlResponse(
                     $this->tpl->render(
@@ -403,11 +387,12 @@ class VpnPortalModule implements ServiceModuleInterface
              * @return \LC\Common\Http\Response
              */
             function (Request $request, array $hookData) {
+                $wgEnabledConfig = $this->requireWireGuardEnabled($this->wgConfig);
                 /** @var \LC\Common\Http\UserInfo */
                 $userInfo = $hookData['auth'];
 
                 $publicKey = $request->requirePostParameter('publicKey');
-                $this->wgDaemonClient->deleteConfig($userInfo->getUserId(), $publicKey);
+                $wgEnabledConfig->wgDaemonClient->deleteConfig($userInfo->getUserId(), $publicKey);
 
                 return new RedirectResponse($request->getRootUri().'WGConfigurations', 302);
             }
@@ -533,5 +518,21 @@ class VpnPortalModule implements ServiceModuleInterface
         $expiryDate = date_add(clone $this->dateTime, $dateInterval);
 
         return $expiryDate->format('Y-m-d');
+    }
+
+    /**
+     * @param false|WireGuard\WGEnabledConfig $wgConfig
+     *
+     * @throws HttpException
+     *
+     * @return WireGuard\WGEnabledConfig
+     */
+    private static function requireWireGuardEnabled($wgConfig)
+    {
+        if (!$wgConfig) {
+            throw new HttpException('WireGuard is not enabled', 403);
+        }
+
+        return $wgConfig;
     }
 }

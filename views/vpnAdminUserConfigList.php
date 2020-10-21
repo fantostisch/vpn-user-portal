@@ -41,24 +41,30 @@ $this->start('content'); ?>
             <tbody>
             <?php foreach ($clientCertificateList as $clientCertificate): ?>
                 <tr>
-                    <td><span title="<?=$this->e($clientCertificate['display_name']); ?>"><?=$this->etr($clientCertificate['display_name'], 25); ?></span></td>
-                    <td><?=$this->d($clientCertificate['valid_to']); ?></td>
+                    <td>
+                        <span title="<?= $this->e($clientCertificate['display_name']); ?>"><?= $this->etr($clientCertificate['display_name'], 25); ?></span>
+                    </td>
+                    <td><?= $this->d($clientCertificate['valid_to']); ?></td>
                 </tr>
             <?php endforeach; ?>
             </tbody>
         </table>
     <?php endif; ?>
 
-    <h2><?=$this->t('WireGuard Configurations'); ?></h2>
+<?php if (!(false === $wgConfigs)): ?>
+    <h2><?= $this->t('WireGuard Configurations'); ?></h2>
 
     <?php if (0 === count($wgConfigs)): ?>
         <p class="plain">
-            <?=$this->t('This user does not have any WireGuard configurations.'); ?>
+            <?= $this->t('This user does not have any WireGuard configurations.'); ?>
         </p>
     <?php else: ?>
         <table class="tbl">
             <thead>
-            <tr><th><?=$this->t('Name'); ?></th><th><?=$this->t('Last modified at'); ?> (<?=$this->e(date('T')); ?>)</th></tr>
+            <tr>
+                <th><?= $this->t('Name'); ?></th>
+                <th><?= $this->t('Last modified at'); ?> (<?= $this->e(date('T')); ?>)</th>
+            </tr>
             </thead>
             <tbody>
             <?php
@@ -67,28 +73,30 @@ $this->start('content'); ?>
              */
             foreach ($wgConfigs as $publicKey => $wgConfig): ?>
                 <tr>
-                    <td><span title="<?=$this->e($wgConfig->name); ?>"><?=$this->etr($wgConfig->name, 25); ?></span></td>
-                    <td><?=$this->d($wgConfig->modified); ?></td>
+                    <td><span title="<?= $this->e($wgConfig->name); ?>"><?= $this->etr($wgConfig->name, 25); ?></span>
+                    </td>
+                    <td><?= $this->d($wgConfig->modified); ?></td>
                 </tr>
             <?php endforeach; ?>
             </tbody>
         </table>
     <?php endif; ?>
+<?php endif; ?>
 
-    <h2><?=$this->t('Connections'); ?></h2>
-    <p>
-        <?=$this->t('The most recent, concluded, VPN connections with this account.'); ?>
-    </p>
+<h2><?= $this->t('Connections'); ?></h2>
+<p>
+    <?= $this->t('The most recent, concluded, VPN connections with this account.'); ?>
+</p>
 <?php if (0 === count($userConnectionLogEntries)): ?>
-    <p class="plain"><?=$this->t('No connections yet.'); ?></p>
+    <p class="plain"><?= $this->t('No connections yet.'); ?></p>
 <?php else: ?>
     <table class="tbl">
         <thead>
-            <tr>
-                <th><?=$this->t('Profile'); ?></th>
-                <th><?=$this->t('Connected'); ?> (<?=$this->e(date('T')); ?>)</th>
-                <th><?=$this->t('Disconnected'); ?> (<?=$this->e(date('T')); ?>)</th>
-            </tr>
+        <tr>
+            <th><?= $this->t('Profile'); ?></th>
+            <th><?= $this->t('Connected'); ?> (<?= $this->e(date('T')); ?>)</th>
+            <th><?= $this->t('Disconnected'); ?> (<?= $this->e(date('T')); ?>)</th>
+        </tr>
         </thead>
         <tbody>
 <?php foreach ($userConnectionLogEntries as $logEntry): ?>

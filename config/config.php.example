@@ -183,13 +183,15 @@ return [
     'apiUri' => 'http://localhost/vpn-server-api/api.php',
 
     'WireGuard' => [
+        'enabled' => false,
+
         // The hostname the WireGuard client(s) will connect to
-        'hostName' => 'vpn.example',
+        // 'hostName' => 'vpn.example',
 
         // The port the WireGuard client(s) will connect to
-        'port' => 51820,
+        // 'port' => 51820,
 
         // Uri of the WireGuard Daemon
-        'daemonUri' => 'http://localhost:8080',
+        // 'daemonUri' => 'http://localhost:8080',
     ]
 ];

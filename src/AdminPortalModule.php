@@ -22,7 +22,7 @@ use LC\Common\Http\Service;
 use LC\Common\Http\ServiceModuleInterface;
 use LC\Common\HttpClient\ServerClient;
 use LC\Common\TplInterface;
-use LC\Portal\WireGuard\WGDaemonClient;
+use LC\Portal\WireGuard\WGEnabledConfig;
 
 class AdminPortalModule implements ServiceModuleInterface
 {
@@ -38,16 +38,19 @@ class AdminPortalModule implements ServiceModuleInterface
     /** @var \DateTime */
     private $dateTime;
 
-    /** @var \LC\Portal\WireGuard\WGDaemonClient */
-    private $wgDaemonClient;
+    /** @var false|\LC\Portal\WireGuard\WGEnabledConfig */
+    private $wgConfig;
 
-    public function __construct(TplInterface $tpl, Storage $storage, ServerClient $serverClient, WGDaemonClient $wgDaemonClient)
+    /**
+     * @param false|\LC\Portal\WireGuard\WGEnabledConfig $wgConfig
+     */
+    public function __construct(TplInterface $tpl, Storage $storage, ServerClient $serverClient, $wgConfig)
     {
         $this->tpl = $tpl;
         $this->storage = $storage;
         $this->serverClient = $serverClient;
         $this->dateTime = new DateTime();
-        $this->wgDaemonClient = $wgDaemonClient;
+        $this->wgConfig = $wgConfig;
     }
 
     /**
@@ -77,7 +80,7 @@ class AdminPortalModule implements ServiceModuleInterface
                         [
                             'idNameMapping' => $idNameMapping,
                             'vpnConnections' => $this->serverClient->getRequireArray('client_connections'),
-                            'wgUserConnections' => $this->wgDaemonClient->getClientConnections(),
+                            'wgUserConnections' => $this->wgConfig instanceof WGEnabledConfig ? $this->wgConfig->wgDaemonClient->getClientConnections() : false,
                         ]
                     )
                 );
@@ -140,7 +143,7 @@ class AdminPortalModule implements ServiceModuleInterface
                 InputValidation::userId($userId);
 
                 $clientCertificateList = $this->serverClient->getRequireArray('client_certificate_list', ['user_id' => $userId]);
-                $wgConfigs = $this->wgDaemonClient->getConfigs($userId);
+                $wgConfigs = $this->wgConfig instanceof WGEnabledConfig ? $this->wgConfig->wgDaemonClient->getConfigs($userId) : false;
                 $userMessages = $this->serverClient->getRequireArray('user_messages', ['user_id' => $userId]);
 
                 $userConnectionLogEntries = $this->serverClient->getRequireArray('user_connection_log', ['user_id' => $userId]);
@@ -218,13 +221,17 @@ class AdminPortalModule implements ServiceModuleInterface
                             }
                         }
 
-                        $this->wgDaemonClient->disableUser($userId);
+                        if ($this->wgConfig instanceof WGEnabledConfig) {
+                            $this->wgConfig->wgDaemonClient->disableUser($userId);
+                        }
 
                         break;
 
                     case 'enableUser':
                         $this->serverClient->post('enable_user', ['user_id' => $userId]);
-                        $this->wgDaemonClient->enableUser($userId);
+                        if ($this->wgConfig instanceof WGEnabledConfig) {
+                            $this->wgConfig->wgDaemonClient->enableUser($userId);
+                        }
                         break;
 
                     case 'deleteTotpSecret':
