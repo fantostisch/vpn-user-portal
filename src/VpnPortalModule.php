@@ -25,6 +25,7 @@ use LC\Common\Http\SessionInterface;
 use LC\Common\HttpClient\ServerClient;
 use LC\Common\TplInterface;
 use LC\Portal\WireGuard\WGClientConfigGenerator;
+use LC\Portal\WireGuard\WGEnabledConfig;
 
 class VpnPortalModule implements ServiceModuleInterface
 {
@@ -530,7 +531,7 @@ class VpnPortalModule implements ServiceModuleInterface
      */
     private static function requireWireGuardEnabled($wgConfig)
     {
-        if (!$wgConfig) {
+        if (!($wgConfig instanceof WGEnabledConfig)) {
             throw new HttpException('WireGuard is not enabled', 403);
         }
 
