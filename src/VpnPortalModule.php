@@ -267,6 +267,7 @@ class VpnPortalModule implements ServiceModuleInterface
 
                 // verify whether the user_id owns the specified auth_key
                 $authorizations = $this->storage->getAuthorizations($userInfo->getUserId());
+                $authorizations = $this->storage->getAuthorizations($userInfo->getUserId());
 
                 $authKeyFound = false;
                 foreach ($authorizations as $authorization) {
@@ -327,8 +328,8 @@ class VpnPortalModule implements ServiceModuleInterface
                 $wgEnabledConfig = $this->requireWireGuardEnabled($this->wgConfig);
                 /** @var \LC\Common\Http\UserInfo */
                 $userInfo = $hookData['auth'];
-                $username = $userInfo->getUserId();
-                $wgConfigs = $wgEnabledConfig->wgDaemonClient->getConfigs($username);
+                $userId = $userInfo->getUserId();
+                $wgConfigs = $wgEnabledConfig->wgDaemonClient->getConfigs($userId);
 
                 return new HtmlResponse(
                     $this->tpl->render(
@@ -352,9 +353,9 @@ class VpnPortalModule implements ServiceModuleInterface
                 $userInfo = $hookData['auth'];
 
                 $displayName = InputValidation::displayName($request->requirePostParameter('displayName'));
-                $username = $userInfo->getUserId();
+                $userId = $userInfo->getUserId();
 
-                $createResponse = $wgEnabledConfig->wgDaemonClient->createConfig($username, $displayName);
+                $createResponse = $wgEnabledConfig->wgDaemonClient->createConfig($userId, $displayName);
                 $wgConfigFile = WGClientConfigGenerator::get(
                     $wgEnabledConfig->wgHostName,
                     $wgEnabledConfig->wgPort,
@@ -364,7 +365,7 @@ class VpnPortalModule implements ServiceModuleInterface
                 );
                 $wgConfigFileName = sprintf('%s_%s_%s.conf', $wgEnabledConfig->wgHostName, date('Ymd'), $displayName);
 
-                $wgConfigs = $wgEnabledConfig->wgDaemonClient->getConfigs($username);
+                $wgConfigs = $wgEnabledConfig->wgDaemonClient->getConfigs($userId);
 
                 return new HtmlResponse(
                     $this->tpl->render(

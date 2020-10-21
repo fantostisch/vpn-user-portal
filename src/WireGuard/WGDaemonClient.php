@@ -30,13 +30,13 @@ class WGDaemonClient
     }
 
     /**
-     * @param string $username
+     * @param string $userId
      *
      * @return array<string, WGClientConfig>
      */
-    public function getConfigs($username)
+    public function getConfigs($userId)
     {
-        $result = $this->httpClient->get($this->baseUrl.'/configs', ['user_id' => $username]);
+        $result = $this->httpClient->get($this->baseUrl.'/configs', ['user_id' => $userId]);
         $responseCode = $result->getCode();
         $responseString = $result->getBody();
         $this->assertResponseCode([200], $responseCode, $responseString);
@@ -46,14 +46,14 @@ class WGDaemonClient
     }
 
     /**
-     * @param string $username
+     * @param string $userId
      * @param string $name
      *
      * @return CreateResponse
      */
-    public function createConfig($username, $name)
+    public function createConfig($userId, $name)
     {
-        $result = $this->httpClient->post($this->baseUrl.'/create_config_and_key_pair', [], ['user_id' => $username, 'name' => $name]);
+        $result = $this->httpClient->post($this->baseUrl.'/create_config_and_key_pair', [], ['user_id' => $userId, 'name' => $name]);
         $responseCode = $result->getCode();
         $responseString = $result->getBody();
         $this->assertResponseCode([200], $responseCode, $responseString);
@@ -62,40 +62,40 @@ class WGDaemonClient
     }
 
     /**
-     * @param string $username
+     * @param string $userId
      * @param string $publicKey
      *
      * @return void
      */
-    public function deleteConfig($username, $publicKey)
+    public function deleteConfig($userId, $publicKey)
     {
-        $result = $this->httpClient->post($this->baseUrl.'/delete_config', ['user_id' => $username, 'public_key' => $publicKey], []);
+        $result = $this->httpClient->post($this->baseUrl.'/delete_config', ['user_id' => $userId, 'public_key' => $publicKey], []);
         $responseCode = $result->getCode();
         $responseString = $result->getBody();
         $this->assertResponseCode([200, 409], $responseCode, $responseString);
     }
 
     /**
-     * @param string $username
+     * @param string $userId
      *
      * @return void
      */
-    public function disableUser($username)
+    public function disableUser($userId)
     {
-        $result = $this->httpClient->post($this->baseUrl.'/disable_user', ['user_id' => $username], []);
+        $result = $this->httpClient->post($this->baseUrl.'/disable_user', ['user_id' => $userId], []);
         $responseCode = $result->getCode();
         $responseString = $result->getBody();
         $this->assertResponseCode([200], $responseCode, $responseString);
     }
 
     /**
-     * @param string $username
+     * @param string $userId
      *
      * @return void
      */
-    public function enableUser($username)
+    public function enableUser($userId)
     {
-        $result = $this->httpClient->post($this->baseUrl.'/enable_user', ['user_id' => $username], []);
+        $result = $this->httpClient->post($this->baseUrl.'/enable_user', ['user_id' => $userId], []);
         $responseCode = $result->getCode();
         $responseString = $result->getBody();
         $this->assertResponseCode([200, 419], $responseCode, $responseString);
