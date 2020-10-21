@@ -19,7 +19,6 @@ use LC\Common\HttpClient\ServerClient;
 use LC\Portal\ClientFetcher;
 use LC\Portal\Storage;
 use LC\Portal\VpnPortalModule;
-use LC\Portal\WireGuard\WGDaemonClient;
 use PDO;
 use PHPUnit\Framework\TestCase;
 
@@ -37,7 +36,6 @@ class VpnPortalModuleTest extends TestCase
         $serverClient = new ServerClient(new TestHttpClient(), 'serverClient');
         $storage = new Storage(new PDO('sqlite::memory:'), $schemaDir, new DateInterval('P90D'));
         $storage->init();
-        $wgDaemonClient = new WGDaemonClient(new TestHttpClient(), 'wgDaemonclient');
 
         $vpnPortalModule = new VpnPortalModule(
             new Config(['sessionExpiry' => 'P90D']),
@@ -46,9 +44,7 @@ class VpnPortalModuleTest extends TestCase
             new TestSession(),
             $storage,
             new ClientFetcher(new Config(['Api' => []])),
-            $wgDaemonClient,
-            'wg.hostname',
-            51820
+            false
         );
         $vpnPortalModule->setDateTime(new DateTime('2019-01-01'));
         $this->service = new Service();

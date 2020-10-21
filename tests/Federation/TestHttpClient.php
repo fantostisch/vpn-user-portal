@@ -57,26 +57,13 @@ class TestHttpClient implements HttpClientInterface
     /**
      * @param string               $requestUrl
      * @param array<string,string> $queryParameters
-     * @param string               $postData
+     * @param array<string,string> $postData
      * @param array<string>        $requestHeaders
      *
      * @return HttpClientResponse
      */
-    public function post($requestUrl, array $queryParameters, $postData, array $requestHeaders = [])
+    public function post($requestUrl, array $queryParameters, array $postData, array $requestHeaders = [])
     {
         throw new RuntimeException('POST not implemented');
-    }
-
-    /**
-     * @param string               $requestUrl
-     * @param array<string,string> $queryParameters
-     * @param string               $postData
-     * @param array<string>        $requestHeaders
-     *
-     * @return HttpClientResponse
-     */
-    public function delete($requestUrl, array $queryParameters, $postData, array $requestHeaders = [])
-    {
-        throw new RuntimeException('DELETE not implemented');
     }
 }
