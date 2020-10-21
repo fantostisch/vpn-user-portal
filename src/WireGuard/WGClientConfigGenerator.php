@@ -25,7 +25,7 @@ class WGClientConfigGenerator
         $clientConfig = [
             '[Interface]',
             'PrivateKey = '.$clientPrivateKey,
-            'DNS = 8.8.8.8', //todo
+            'DNS = 9.9.9.9', //todo: do not hardcode dns
             'Address = '.$clientIp,
             '',
             '[Peer]',
