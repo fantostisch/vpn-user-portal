@@ -354,7 +354,7 @@ class VpnPortalModule implements ServiceModuleInterface
                 $displayName = InputValidation::displayName($request->requirePostParameter('displayName'));
                 $username = $userInfo->getUserId();
 
-                $createResponse = $wgEnabledConfig->wgDaemonClient->creatConfig($username, $displayName);
+                $createResponse = $wgEnabledConfig->wgDaemonClient->createConfig($username, $displayName);
                 $wgConfigFile = WGClientConfigGenerator::get(
                     $wgEnabledConfig->wgHostName,
                     $wgEnabledConfig->wgPort,

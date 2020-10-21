@@ -51,7 +51,7 @@ class WGDaemonClient
      *
      * @return CreateResponse
      */
-    public function creatConfig($username, $name)
+    public function createConfig($username, $name)
     {
         $result = $this->httpClient->post($this->baseUrl.'/config', ['user_id' => $username], ['name' => $name]);
         $responseCode = $result->getCode();
