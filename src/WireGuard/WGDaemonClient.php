@@ -9,7 +9,10 @@
 
 namespace LC\Portal\WireGuard;
 
+use LC\Common\Exception\ConfigException;
+use LC\Common\Http\Exception\HttpException;
 use LC\Common\HttpClient\HttpClientInterface;
+use LC\Common\Json;
 use RuntimeException;
 
 class WGDaemonClient
@@ -41,8 +44,15 @@ class WGDaemonClient
         $responseString = $result->getBody();
         $this->assertResponseCode([200], $responseCode, $responseString);
 
+        $decodedJson = Json::decode($responseString);
+
+        /** @var array<string,WGClientConfig|array<string>> $result */
+        $result = array_map('LC\Portal\WireGuard\WGClientConfig::fromArray', $decodedJson);
+
+        $this->assertNoErrors($result, 'Invalid configurations received from WG Daemon');
+
         /* @var array<string, WGClientConfig> */
-        return (array) json_decode($responseString, false); //todo: handle case when json can not be decoded?
+        return $result;
     }
 
     /**
@@ -123,10 +133,30 @@ class WGDaemonClient
      *
      * @return void
      */
-    private function assertResponseCode($expected, $responseCode, $responseString)
+    private static function assertResponseCode($expected, $responseCode, $responseString)
     {
         if (!\in_array($responseCode, $expected, true)) {
             throw new RuntimeException('Unexpected response code from WireGuard Daemon: "'.$responseCode.'". Response: '.$responseString);
+        }
+    }
+
+    /**
+     * @psalm-assert array<string,WGClientConfig> $array
+     *
+     * @param array<string,WGClientConfig|array<string>> $array
+     * @param string                                     $message
+     *
+     * @throws HttpException
+     *
+     * @return void
+     */
+    private static function assertNoErrors(array $array, $message)
+    {
+        /** @var array<string,array<ConfigException>> $invalid */
+        $invalid = array_filter($array, '\is_array');
+
+        if (!empty($invalid)) {
+            throw new HttpException($message.': '.print_r($invalid, true), 500);
         }
     }
 }

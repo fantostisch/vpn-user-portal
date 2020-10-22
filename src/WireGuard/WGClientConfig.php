@@ -9,7 +9,12 @@
 
 namespace LC\Portal\WireGuard;
 
-/** @psalm-suppress MissingConstructor */
+use LC\Common\Config;
+use LC\Common\Exception\ConfigException;
+
+/**
+ * @psalm-immutable
+ */
 class WGClientConfig
 {
     /** @var string */
@@ -20,4 +25,58 @@ class WGClientConfig
 
     /** @var string */
     public $modified;
+
+    /**
+     * @param string $name
+     * @param string $ip
+     * @param string $modified
+     */
+    public function __construct($name, $ip, $modified)
+    {
+        $this->name = $name;
+        $this->ip = $ip;
+        $this->modified = $modified;
+    }
+
+    /**
+     * @param array $array
+     *
+     * @return WGClientConfig|array<string>
+     *
+     * //todo: this @psalm-suppress should be moved above the return statement,
+     * but php-cs-fixer does not like "/**" and psalm does not accept "/*"
+     * @psalm-suppress PossiblyUndefinedVariable
+     */
+    public static function fromArray($array)
+    {
+        $c = new Config($array);
+
+        $validationErrors = [];
+
+        try {
+            $name = $c->requireString('name');
+        } catch (ConfigException $e) {
+            array_push($validationErrors, $e);
+        }
+
+        try {
+            $ip = $c->requireString('ip');
+        } catch (ConfigException $e) {
+            array_push($validationErrors, $e);
+        }
+
+        try {
+            $modified = $c->requireString('modified');
+        } catch (ConfigException $e) {
+            array_push($validationErrors, $e);
+        }
+
+        if (!empty($validationErrors)) {
+            return array_map(function ($e) {
+                return $e->getMessage();
+            }, $validationErrors);
+        }
+
+        return new self($name, $ip, $modified);
+    }
 }
