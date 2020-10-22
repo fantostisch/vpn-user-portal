@@ -51,7 +51,13 @@ class WGDaemonClient
         $decodedJson = Json::decode($responseString);
 
         /** @var array<string,WGClientConfig|non-empty-array<ValidationError>> $result */
-        $result = array_map('LC\Portal\WireGuard\WGClientConfig::fromArray', $decodedJson);
+        $result = array_map(function ($v) {
+            if (!\is_array($v)) {
+                return [new ValidationError('WGClientConfig expected but got: '.$v)];
+            }
+
+            return WGClientConfig::fromArray($v);
+        }, $decodedJson);
 
         $this->assertNoErrors($result, 'Invalid configurations received from WG Daemon');
 
@@ -142,11 +148,21 @@ class WGDaemonClient
         $decodedJson = Json::decode($responseString);
 
         /** @var array<string,array<string,array<WGClientConnection>|non-empty-array<ValidationError>>> $result */
-        $result = array_map(function ($a) {
-            return array_map('LC\Portal\WireGuard\WGClientConnection::fromArray', $a);
+        $result = array_map(function ($v) {
+            if (!\is_array($v)) {
+                return [new ValidationError('Array of WGClientConnection expected but got: '.$v)];
+            }
+
+            return array_map(function ($v2) {
+                if (!\is_array($v2)) {
+                    return [new ValidationError('WGClientConnection expected but got: '.$v2)];
+                }
+
+                return WGClientConnection::fromArray($v2);
+            }, $v);
         }, $decodedJson);
 
-        $this->assertNoErrors($result, 'Invalid configurations received from WG Daemon');
+        $this->assertNoErrors($result, 'Invalid connections received from WG Daemon');
 
         return $result;
     }
