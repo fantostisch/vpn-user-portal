@@ -41,7 +41,7 @@ class WGClientConfig
     /**
      * @param array $array
      *
-     * @return WGClientConfig|array<string>
+     * @return WGClientConfig|non-empty-array<ValidationError>
      *
      * //todo: this @psalm-suppress should be moved above the return statement,
      * but php-cs-fixer does not like "/**" and psalm does not accept "/*"
@@ -72,9 +72,7 @@ class WGClientConfig
         }
 
         if (!empty($validationErrors)) {
-            return array_map(function ($e) {
-                return $e->getMessage();
-            }, $validationErrors);
+            return array_map('\LC\Portal\WireGuard\ValidationError::fromConfigException', $validationErrors);
         }
 
         return new self($name, $ip, $modified);

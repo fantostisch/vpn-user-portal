@@ -9,7 +9,6 @@
 
 namespace LC\Portal\WireGuard;
 
-use LC\Common\Exception\ConfigException;
 use LC\Common\Http\Exception\HttpException;
 use LC\Common\HttpClient\HttpClientInterface;
 use LC\Common\Json;
@@ -35,7 +34,12 @@ class WGDaemonClient
     /**
      * @param string $userId
      *
+     * @throws HttpException
+     *
      * @return array<string, WGClientConfig>
+     *
+     * @psalm-suppress InvalidReturnType
+     * @psalm-suppress InvalidReturnStatement
      */
     public function getConfigs($userId)
     {
@@ -46,12 +50,11 @@ class WGDaemonClient
 
         $decodedJson = Json::decode($responseString);
 
-        /** @var array<string,WGClientConfig|array<string>> $result */
+        /** @var array<string,WGClientConfig|non-empty-array<ValidationError>> $result */
         $result = array_map('LC\Portal\WireGuard\WGClientConfig::fromArray', $decodedJson);
 
         $this->assertNoErrors($result, 'Invalid configurations received from WG Daemon');
 
-        /* @var array<string, WGClientConfig> */
         return $result;
     }
 
@@ -60,6 +63,9 @@ class WGDaemonClient
      * @param string $name
      *
      * @return CreateResponse
+     *
+     * @psalm-suppress InvalidReturnType
+     * @psalm-suppress InvalidReturnStatement
      */
     public function createConfig($userId, $name)
     {
@@ -68,7 +74,14 @@ class WGDaemonClient
         $responseString = $result->getBody();
         $this->assertResponseCode([200], $responseCode, $responseString);
 
-        return json_decode($responseString, false);
+        $decodedJson = Json::decode($responseString);
+
+        /** @var CreateResponse|non-empty-array<ValidationError> $result */
+        $result = CreateResponse::fromArray($decodedJson);
+
+        $this->assertNoErrors($result, 'Invalid response from WG Daemon');
+
+        return $result;
     }
 
     /**
@@ -115,6 +128,9 @@ class WGDaemonClient
      * @psalm-type userID=string
      *
      * @return array<userID, array<WGClientConnection>>
+     *
+     * @psalm-suppress InvalidReturnStatement
+     * @psalm-suppress InvalidReturnType
      */
     public function getClientConnections()
     {
@@ -123,7 +139,16 @@ class WGDaemonClient
         $responseString = $result->getBody();
         $this->assertResponseCode([200], $responseCode, $responseString);
 
-        return (array) json_decode($responseString, false);
+        $decodedJson = Json::decode($responseString);
+
+        /** @var array<string,array<string,array<WGClientConnection>|non-empty-array<ValidationError>>> $result */
+        $result = array_map(function ($a) {
+            return array_map('LC\Portal\WireGuard\WGClientConnection::fromArray', $a);
+        }, $decodedJson);
+
+        $this->assertNoErrors($result, 'Invalid configurations received from WG Daemon');
+
+        return $result;
     }
 
     /**
@@ -141,22 +166,29 @@ class WGDaemonClient
     }
 
     /**
-     * @psalm-assert array<string,WGClientConfig> $array
-     *
-     * @param array<string,WGClientConfig|array<string>> $array
-     * @param string                                     $message
+     * @param mixed  $t
+     * @param string $message
      *
      * @throws HttpException
      *
      * @return void
      */
-    private static function assertNoErrors(array $array, $message)
+    private static function assertNoErrors($t, $message)
     {
-        /** @var array<string,array<ConfigException>> $invalid */
-        $invalid = array_filter($array, '\is_array');
-
-        if (!empty($invalid)) {
-            throw new HttpException($message.': '.print_r($invalid, true), 500);
+        $success = array_walk_recursive(
+            $t,
+            /**
+             * @param mixed $v
+             * @param mixed $_
+             */
+            function ($v, $_) use ($t, $message) {
+                if ($v instanceof ValidationError) {
+                    throw new HttpException($message.': '.json_encode($t, JSON_PRETTY_PRINT), 500);
+                }
+            }
+        );
+        if (!$success) {
+            throw new HttpException('Unable to check for errors.', 500);
         }
     }
 }
