@@ -17,30 +17,21 @@ use LC\Common\TplInterface;
  * Augments the "template" with information about whether WireGuard is enabled.
  * Decides if the WireGuard menu items are shown.
  */
-class WireGuardHook implements BeforeHookInterface
+class EnableWireGuardHook implements BeforeHookInterface
 {
-    /** @var bool */
-    private $wireguardEnabled;
-
     /** @var \LC\Common\TplInterface */
     private $tpl;
 
-    /**
-     * @param bool $wireguardEnabled
-     */
-    public function __construct($wireguardEnabled, TplInterface &$tpl)
+    public function __construct(TplInterface &$tpl)
     {
-        $this->wireguardEnabled = $wireguardEnabled;
         $this->tpl = $tpl;
     }
 
     /**
-     * @return bool
+     * @return void
      */
     public function executeBefore(Request $request, array $hookData)
     {
-        $this->tpl->addDefault(['wireguardEnabled' => $this->wireguardEnabled]);
-
-        return $this->wireguardEnabled;
+        $this->tpl->addDefault(['wireguardEnabled' => true]);
     }
 }

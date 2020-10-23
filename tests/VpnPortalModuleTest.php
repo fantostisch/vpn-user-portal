@@ -43,8 +43,7 @@ class VpnPortalModuleTest extends TestCase
             $serverClient,
             new TestSession(),
             $storage,
-            new ClientFetcher(new Config(['Api' => []])),
-            false
+            new ClientFetcher(new Config(['Api' => []]))
         );
         $vpnPortalModule->setDateTime(new DateTime('2019-01-01'));
         $this->service = new Service();
