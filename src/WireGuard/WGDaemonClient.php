@@ -37,9 +37,6 @@ class WGDaemonClient
      * @throws HttpException
      *
      * @return array<string, WGClientConfig>
-     *
-     * @psalm-suppress InvalidReturnType
-     * @psalm-suppress InvalidReturnStatement
      */
     public function getConfigs($userId)
     {
@@ -50,16 +47,9 @@ class WGDaemonClient
 
         $decodedJson = Json::decode($responseString);
 
-        /** @var array<string,WGClientConfig|non-empty-array<ValidationError>> $result */
-        $result = array_map(function ($v) {
-            if (!\is_array($v)) {
-                return [new ValidationError('WGClientConfig expected but got: '.$v)];
-            }
-
-            return WGClientConfig::fromArray($v);
-        }, $decodedJson);
-
-        $this->assertNoErrors($result, 'Invalid configurations received from WG Daemon');
+        $errorMessage = 'Invalid configurations received from WG Daemon';
+        /** @var array<string,\LC\Portal\WireGuard\WGClientConfig> $result */
+        $result = self::createTypeThrowIfError('array<string,\LC\Portal\WireGuard\WGClientConfig>', $decodedJson, $errorMessage);
 
         return $result;
     }
@@ -69,9 +59,6 @@ class WGDaemonClient
      * @param string $name
      *
      * @return CreateResponse
-     *
-     * @psalm-suppress InvalidReturnType
-     * @psalm-suppress InvalidReturnStatement
      */
     public function createConfig($userId, $name)
     {
@@ -82,10 +69,9 @@ class WGDaemonClient
 
         $decodedJson = Json::decode($responseString);
 
-        /** @var CreateResponse|non-empty-array<ValidationError> $result */
-        $result = CreateResponse::fromArray($decodedJson);
-
-        $this->assertNoErrors($result, 'Invalid response from WG Daemon');
+        $errorMessage = 'Invalid response from WG Daemon';
+        /** @var \LC\Portal\WireGuard\CreateResponse $result */
+        $result = self::createTypeThrowIfError('\LC\Portal\WireGuard\CreateResponse', $decodedJson, $errorMessage);
 
         return $result;
     }
@@ -134,9 +120,6 @@ class WGDaemonClient
      * @psalm-type userID=string
      *
      * @return array<userID, array<WGClientConnection>>
-     *
-     * @psalm-suppress InvalidReturnStatement
-     * @psalm-suppress InvalidReturnType
      */
     public function getClientConnections()
     {
@@ -147,22 +130,9 @@ class WGDaemonClient
 
         $decodedJson = Json::decode($responseString);
 
-        /** @var array<string,array<string,array<WGClientConnection>|non-empty-array<ValidationError>>> $result */
-        $result = array_map(function ($v) {
-            if (!\is_array($v)) {
-                return [new ValidationError('Array of WGClientConnection expected but got: '.$v)];
-            }
-
-            return array_map(function ($v2) {
-                if (!\is_array($v2)) {
-                    return [new ValidationError('WGClientConnection expected but got: '.$v2)];
-                }
-
-                return WGClientConnection::fromArray($v2);
-            }, $v);
-        }, $decodedJson);
-
-        $this->assertNoErrors($result, 'Invalid connections received from WG Daemon');
+        $errorMessage = 'Invalid connections received from WG Daemon';
+        /** @var array<array<\LC\Portal\WireGuard\WGClientConnection>> $result */
+        $result = self::createTypeThrowIfError('array<string,array<\LC\Portal\WireGuard\WGClientConnection>>', $decodedJson, $errorMessage);
 
         return $result;
     }
@@ -182,29 +152,22 @@ class WGDaemonClient
     }
 
     /**
-     * @param mixed  $t
-     * @param string $message
+     * @param string $typeName
+     * @param mixed  $value
+     * @param string $errorMessage
      *
      * @throws HttpException
      *
-     * @return void
+     * @return mixed
      */
-    private static function assertNoErrors($t, $message)
+    private static function createTypeThrowIfError($typeName, $value, $errorMessage)
     {
-        $success = array_walk_recursive(
-            $t,
-            /**
-             * @param mixed $v
-             * @param mixed $_
-             */
-            function ($v, $_) use ($t, $message) {
-                if ($v instanceof ValidationError) {
-                    throw new HttpException($message.': '.json_encode($t, JSON_PRETTY_PRINT), 500);
-                }
-            }
-        );
-        if (!$success) {
-            throw new HttpException('Unable to check for errors.', 500);
+        $result = TypeCreator::createType($typeName, $value);
+
+        if (!ValidationError::isValid($result)) {
+            throw new HttpException((new ValidationError($errorMessage, $result))->__toString(), 500);
         }
+
+        return $result;
     }
 }

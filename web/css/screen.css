@@ -538,3 +538,7 @@ table.stats th.index span {
     padding: 0.75em 0 2em 0;
   }
 }
+
+code {
+  white-space: pre-wrap;
+}

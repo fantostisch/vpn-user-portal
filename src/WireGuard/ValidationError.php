@@ -9,8 +9,6 @@
 
 namespace LC\Portal\WireGuard;
 
-use LC\Common\Exception\ConfigException;
-
 /**
  * @psalm-immutable
  */
@@ -20,20 +18,64 @@ class ValidationError
     public $message;
 
     /**
-     * @param string $message
+     * Underlying validation errors.
+     *
+     * @var array<ValidationError>
      */
-    public function __construct($message)
+    public $err;
+
+    /**
+     * @param string                 $message
+     * @param array<ValidationError> $err
+     */
+    public function __construct($message, array $err = [])
     {
         $this->message = $message;
+        $this->err = $err;
     }
 
     /**
-     * @param ConfigException $ce
-     *
-     * @return ValidationError
+     * @return string
      */
-    public static function fromConfigException($ce)
+    public function __toString()
     {
-        return new self($ce->getMessage());
+        if (empty($this->err)) {
+            return $this->message;
+        }
+
+        $indentValidationError =
+            /**
+             * @return string
+             */
+            function (self $ve) {
+                return Utils::indent($ve->__toString());
+            };
+
+        return $this->message."\n"
+            .'Caused by:'."\n"
+            .implode(
+                "\n".
+                'and'."\n",
+                array_map($indentValidationError, $this->err)
+            );
+    }
+
+    /**
+     * Checks if $t is not an array<ValidationError>.
+     *
+     * @template T
+     *
+     * @param T|array<ValidationError> $t
+     *
+     * @return bool
+     * @psalm-return  (T is array<ValidationError> ? false : true)
+     */
+    public static function isValid($t)
+    {
+        if (\is_array($t) && !empty($t) && array_values($t)[0] instanceof self) {
+            return false;
+        }
+
+        return true;
     }
 }
