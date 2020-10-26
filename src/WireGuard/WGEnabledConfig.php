@@ -23,14 +23,19 @@ class WGEnabledConfig
     /** @var int */
     public $wgPort;
 
+    /** @var array<string> */
+    public $dns;
+
     /**
-     * @param string $wgHostName
-     * @param int    $wgPort
+     * @param string        $wgHostName
+     * @param int           $wgPort
+     * @param array<string> $dns
      */
-    public function __construct(WGDaemonClient $wgDaemonClient, $wgHostName, $wgPort)
+    public function __construct(WGDaemonClient $wgDaemonClient, $wgHostName, $wgPort, array $dns)
     {
         $this->wgDaemonClient = $wgDaemonClient;
         $this->wgHostName = $wgHostName;
         $this->wgPort = $wgPort;
+        $this->dns = $dns;
     }
 }

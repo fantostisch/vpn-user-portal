@@ -182,7 +182,7 @@ return [
     'apiPass' => 'XXX-vpn-user-portal/vpn-server-api-XXX',
     'apiUri' => 'http://localhost/vpn-server-api/api.php',
 
-    'WireGuard' => [
+   'WireGuard' => [
         'enabled' => false,
 
         // The hostname the WireGuard client(s) will connect to
@@ -193,5 +193,9 @@ return [
 
         // Uri of the WireGuard Daemon
         // 'daemonUri' => 'http://localhost:8080',
+
+        // IP address(es) of DNS server(s) to push to the client
+        // Quad9 (https://www.quad9.net)
+        'dns' => ['9.9.9.9', '2620:fe::fe'],
     ]
 ];

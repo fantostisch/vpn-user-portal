@@ -79,7 +79,8 @@ class WireGuardPortalModule implements ServiceModuleInterface
                     $this->wgConfig->wgPort,
                     $createResponse->ip,
                     $createResponse->serverPublicKey,
-                    $createResponse->clientPrivateKey
+                    $createResponse->clientPrivateKey,
+                    $this->wgConfig->dns
                 );
                 $wgConfigFileName = sprintf('%s_%s_%s.conf', $this->wgConfig->wgHostName, date('Ymd'), $displayName);
 

@@ -17,6 +17,7 @@ use fkooman\SeCookie\CookieOptions;
 use fkooman\SeCookie\Session;
 use fkooman\SeCookie\SessionOptions;
 use LC\Common\Config;
+use LC\Common\Exception\ConfigException;
 use LC\Common\FileIO;
 use LC\Common\Http\CsrfProtectionHook;
 use LC\Common\Http\HtmlResponse;
@@ -312,11 +313,23 @@ try {
     $wgProvidedConfig = $config->s('WireGuard');
 
     /* @var false|WGEnabledConfig $wgConfig */
-    if ($wgProvidedConfig->requireBool('enabled')) {
+    if (true === $wgProvidedConfig->optionalBool('enabled')) {
         $wgHttpClient = new CurlHttpClient();
         $wgDaemonClient = new WGDaemonClient($wgHttpClient, $wgProvidedConfig->requireString('daemonUri'));
 
-        $wgConfig = new WGEnabledConfig($wgDaemonClient, $wgProvidedConfig->requireString('hostName'), $wgProvidedConfig->requireInt('port'));
+        $dnsArray = $wgProvidedConfig->requireArray('dns');
+        foreach ($dnsArray as $dns) {
+            if (!is_string($dns)) {
+                throw new ConfigException('DNS provided for WireGuard "'.$dns.'" was not a string.');
+            }
+        }
+
+        $wgConfig = new WGEnabledConfig(
+            $wgDaemonClient,
+            $wgProvidedConfig->requireString('hostName'),
+            $wgProvidedConfig->requireInt('port'),
+            $dnsArray
+        );
 
         $wireguardPortalModule = new WireGuardPortalModule($tpl, $wgConfig);
         $service->addModule($wireguardPortalModule);

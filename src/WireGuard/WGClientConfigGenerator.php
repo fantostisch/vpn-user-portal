@@ -12,20 +12,21 @@ namespace LC\Portal\WireGuard;
 class WGClientConfigGenerator
 {
     /**
-     * @param string $hostName
-     * @param int    $port
-     * @param string $clientIp
-     * @param string $serverPublicKey
-     * @param string $clientPrivateKey
+     * @param string        $hostName
+     * @param int           $port
+     * @param string        $clientIp
+     * @param string        $serverPublicKey
+     * @param string        $clientPrivateKey
+     * @param array<string> $dnsServers
      *
      * @return string
      */
-    public static function get($hostName, $port, $clientIp, $serverPublicKey, $clientPrivateKey)
+    public static function get($hostName, $port, $clientIp, $serverPublicKey, $clientPrivateKey, array $dnsServers)
     {
         $clientConfig = [
             '[Interface]',
             'PrivateKey = '.$clientPrivateKey,
-            'DNS = 9.9.9.9', //todo: do not hardcode dns
+            'DNS = '.implode(',', $dnsServers),
             'Address = '.$clientIp,
             '',
             '[Peer]',
