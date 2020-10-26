@@ -74,13 +74,15 @@ class WireGuardPortalModule implements ServiceModuleInterface
                 $userId = $userInfo->getUserId();
 
                 $createResponse = $this->wgConfig->wgDaemonClient->createConfig($userId, $displayName);
-                $wgConfigFile = WGClientConfigGenerator::get(
-                    $this->wgConfig->wgHostName,
-                    $this->wgConfig->wgPort,
-                    $createResponse->ip,
-                    $createResponse->serverPublicKey,
-                    $createResponse->clientPrivateKey,
-                    $this->wgConfig->dns
+                $wgConfigFile = $this->tpl->render('vpnPortalWGConfigurationFile',
+                    [
+                        'hostName' => $this->wgConfig->wgHostName,
+                        'port' => $this->wgConfig->wgPort,
+                        'clientIp' => $createResponse->ip,
+                        'serverPublicKey' => $createResponse->serverPublicKey,
+                        'clientPrivateKey' => $createResponse->clientPrivateKey,
+                        'dnsServers' => $this->wgConfig->dns,
+                    ]
                 );
                 $wgConfigFileName = sprintf('%s_%s_%s.conf', $this->wgConfig->wgHostName, date('Ymd'), $displayName);
 
