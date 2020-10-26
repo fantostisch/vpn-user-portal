@@ -17,7 +17,7 @@ $this->start('content');
     <h2><?= $this->t('Configuration'); /* todo: allow translation to change order */ ?>
         '<?= $this->etr($newConfigName, 25); ?>' <?= $this->t('created'); ?></h2>
     <a download="<?= $this->e($wgConfigFileName); ?>"
-       href="data:text/plain;charset=utf-16le;base64,<?= $this->e($wgConfigFile); ?>">
+       href="data:text/plain;charset=UTF-8;base64,<?= $this->e($wgConfigFile); ?>">
         <?= $this->t('Download config'); ?></a>
     <details>
         <summary><?= $this->e('QR Code'); ?></summary>
