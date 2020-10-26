@@ -33,9 +33,8 @@ class WGClientConfigGenerator
             'PublicKey = '.$serverPublicKey,
             'AllowedIPs = 0.0.0.0/0',
             'Endpoint = '.$hostName.':'.$port,
-            PHP_EOL,
         ];
 
-        return implode(PHP_EOL, $clientConfig);
+        return implode(PHP_EOL, $clientConfig).PHP_EOL;
     }
 }

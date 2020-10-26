@@ -92,9 +92,8 @@ class WireGuardPortalModule implements ServiceModuleInterface
                         [
                             'wgConfigs' => $wgConfigs,
                             'wgConfigFileName' => $wgConfigFileName,
-                            'wgConfigFile' => base64_encode($wgConfigFile),
+                            'wgConfigFile' => rawurlencode($wgConfigFile),
                             'newConfigName' => $displayName,
-                            'qrCodeURL' => 'qr?qr_text='.urlencode($wgConfigFile),
                         ]
                     )
                 );
