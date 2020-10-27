@@ -68,6 +68,7 @@ class ValidationError
      * @param T|array<ValidationError> $t
      *
      * @return bool
+     * @psalm-assert-if-false array<ValidationError> $t
      * @psalm-return  (T is array<ValidationError> ? false : true)
      */
     public static function isValid($t)

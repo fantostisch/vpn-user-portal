@@ -12,7 +12,6 @@ namespace LC\Portal\WireGuard;
 use LC\Common\Http\Exception\HttpException;
 use LC\Common\HttpClient\HttpClientInterface;
 use LC\Common\Json;
-use RuntimeException;
 
 class WGDaemonClient
 {
@@ -43,7 +42,7 @@ class WGDaemonClient
         $result = $this->httpClient->get($this->baseUrl.'/configs', ['user_id' => $userId]);
         $responseCode = $result->getCode();
         $responseString = $result->getBody();
-        $this->assertResponseCode([200], $responseCode, $responseString);
+        $this->assertSuccess([], $responseCode, $responseString);
 
         $decodedJson = Json::decode($responseString);
 
@@ -65,7 +64,7 @@ class WGDaemonClient
         $result = $this->httpClient->post($this->baseUrl.'/create_config_and_key_pair', [], ['user_id' => $userId, 'name' => $name]);
         $responseCode = $result->getCode();
         $responseString = $result->getBody();
-        $this->assertResponseCode([200], $responseCode, $responseString);
+        $this->assertSuccess([], $responseCode, $responseString);
 
         $decodedJson = Json::decode($responseString);
 
@@ -87,7 +86,7 @@ class WGDaemonClient
         $result = $this->httpClient->post($this->baseUrl.'/delete_config', ['user_id' => $userId, 'public_key' => $publicKey], []);
         $responseCode = $result->getCode();
         $responseString = $result->getBody();
-        $this->assertResponseCode([200, 409], $responseCode, $responseString);
+        $this->assertSuccess(['config_not_found'], $responseCode, $responseString);
     }
 
     /**
@@ -100,7 +99,7 @@ class WGDaemonClient
         $result = $this->httpClient->post($this->baseUrl.'/disable_user', ['user_id' => $userId], []);
         $responseCode = $result->getCode();
         $responseString = $result->getBody();
-        $this->assertResponseCode([200], $responseCode, $responseString);
+        $this->assertSuccess(['user_already_disabled'], $responseCode, $responseString);
     }
 
     /**
@@ -113,7 +112,7 @@ class WGDaemonClient
         $result = $this->httpClient->post($this->baseUrl.'/enable_user', ['user_id' => $userId], []);
         $responseCode = $result->getCode();
         $responseString = $result->getBody();
-        $this->assertResponseCode([200, 419], $responseCode, $responseString);
+        $this->assertSuccess(['user_already_enabled'], $responseCode, $responseString);
     }
 
     /**
@@ -126,7 +125,7 @@ class WGDaemonClient
         $result = $this->httpClient->get($this->baseUrl.'/client_connections', []);
         $responseCode = $result->getCode();
         $responseString = $result->getBody();
-        $this->assertResponseCode([200], $responseCode, $responseString);
+        $this->assertSuccess([], $responseCode, $responseString);
 
         $decodedJson = Json::decode($responseString);
 
@@ -138,17 +137,29 @@ class WGDaemonClient
     }
 
     /**
-     * @param array<int> $expected
-     * @param int        $responseCode
-     * @param string     $responseString
+     * @param array<"config_not_found" | "user_already_enabled" | "user_already_disabled"> $allowedErrors
+     * @param int                                                                          $responseCode
+     * @param string                                                                       $responseString
      *
      * @return void
      */
-    private static function assertResponseCode($expected, $responseCode, $responseString)
+    private static function assertSuccess($allowedErrors, $responseCode, $responseString)
     {
-        if (!\in_array($responseCode, $expected, true)) {
-            throw new RuntimeException('Unexpected response code from WireGuard Daemon: "'.$responseCode.'". Response: '.$responseString);
+        if (200 === $responseCode) {
+            return;
         }
+        if (400 === $responseCode) {
+            $decodedJson = Json::decode($responseString);
+            $errorMessage = 'Got an error from the WG Daemon but could not decode it.';
+            /** @var WGDaemonError $result */
+            $error = self::createTypeThrowIfError('\LC\Portal\WireGuard\WGDaemonError', $decodedJson, $errorMessage);
+            if (\in_array($error->errorType, $allowedErrors, true)) {
+                return;
+            } else {
+                throw new HttpException('Got an error from the WG Daemon which was not allowed: "'.$error->errorType.'". Response:'.$responseString, 500);
+            }
+        }
+        throw new HttpException('Unexpected response code from WireGuard Daemon: "'.$responseCode.'". Response: '.$responseString, 500);
     }
 
     /**

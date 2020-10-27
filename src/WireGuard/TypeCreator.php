@@ -25,6 +25,49 @@ class TypeCreator
      */
     public static function createType($typeName, $data)
     {
+        // Union types, return first type that works.
+        $types = array_map('trim', explode('|', $typeName));
+        if (\count($types) > 2) {
+            $validationErrors = [];
+            foreach ($types as $type) {
+                $result = self::createType($type, $data);
+                if (ValidationError::isValid($result)) {
+                    return $result;
+                }
+                array_push($validationErrors, new ValidationError('Type was not a "'.$type.'".', $result));
+            }
+
+            return [new ValidationError('Type was not any of "'.$typeName.'".', $validationErrors)];
+        }
+
+        // String literal
+        if ('"' === substr($typeName, 0, 1) && '"' === substr($typeName, \strlen($typeName) - 1, 1)) {
+            if (!\is_string($data)) {
+                return [new ValidationError('Expected string literal "'.$typeName.'" but no string provided: "'.$data.'".')];
+            }
+            if ($typeName !== '"'.$data.'"') {
+                return [new ValidationError('String "'.$data.'" was not the expected: "'.$typeName.'".')];
+            }
+
+            return $data;
+        }
+
+        // Number literal
+        if (is_numeric($typeName)) {
+            // is_numeric also accepts strings, which we do not want
+            if (\is_string($data)) {
+                return [new ValidationError('Number literal expected: "'.$typeName.'" but string provided: "'.$data.'".')];
+            }
+            if (!is_numeric($data)) {
+                return [new ValidationError('Number literal expected: "'.$typeName.'" but no number provided: "'.$data.'".')];
+            }
+            if ((float) $typeName !== (float) $data) {
+                return [new ValidationError('Number "'.$data.'" was not the expected: "'.$typeName.'".')];
+            }
+
+            return $data;
+        }
+
         // Handle array
         $arrayTypePrefix = 'array<';
         if (substr($typeName, 0, \strlen($arrayTypePrefix)) === $arrayTypePrefix) {
@@ -92,7 +135,7 @@ class TypeCreator
             /** @psalm-suppress ArgumentTypeCoercion */
             $class = new ReflectionClass($typeName);
         } catch (\ReflectionException $e) {
-            throw new HttpException('Unknown type: '.$typeName.'.', 500);
+            throw new HttpException('Unknown type: "'.$typeName.'".', 500);
         }
         if (!\is_array($data)) {
             return [new ValidationError('Could not create "'.$class->getName()
@@ -166,11 +209,14 @@ class TypeCreator
     {
         $comments = $reflectionMethod->getDocComment();
         $commentLines = explode("\n", $comments);
+        $commentLinesUnionTrimmed = array_map(function ($line) {
+            return implode('|', array_map('trim', explode('|', $line)));
+        }, $commentLines);
         $commentLinesSplitWords = array_map(function ($line) {
             return array_values(array_filter(explode(' ', $line), function ($w) {
                 return '' !== ($w);
             }));
-        }, $commentLines);
+        }, $commentLinesUnionTrimmed);
         foreach ($commentLinesSplitWords as $word) {
             if (\count($word) >= 4) {
                 if ('*' === $word[0] && '@param' === $word[1] && $word[3] === '$'.$parameterName) {
