@@ -77,7 +77,7 @@ class TypeCreatorTest extends TestCase
                 } else {
                     $message = 'No validation errors for type '.$type;
                 }
-                $this->assertEquals($expected, $actual, $message, 0, PHP_INT_MAX);
+                $this->assertEquals($expected, $actual, $message);
             }
         }
     }
@@ -91,7 +91,7 @@ class TypeCreatorTest extends TestCase
             new ValidationError('Parameter "allowedIPs" not provided for constructor of class LC\Portal\WireGuard\WGClientConnection.'),
         ];
         $actual = TypeCreator::createType($type, json_decode(json_encode($data), true));
-        $this->assertEquals($expected, $actual, '', 0, PHP_INT_MAX);
+        $this->assertEquals($expected, $actual);
     }
 
     public function testConstructWithoutArgumentList()
@@ -100,7 +100,7 @@ class TypeCreatorTest extends TestCase
         $data = 'yeeh';
         $expected = [new ValidationError('Could not create "LC\Portal\WireGuard\WGClientConnection because the value provided was not an array: "yeeh".')];
         $actual = TypeCreator::createType($type, json_decode(json_encode($data), true));
-        $this->assertEquals($expected, $actual, '', 0, PHP_INT_MAX);
+        $this->assertEquals($expected, $actual);
     }
 
     public function testInvalidTypeForUnion()
