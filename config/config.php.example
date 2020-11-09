@@ -186,6 +186,7 @@ return [
         'enabled' => false,
 
         // The hostname the WireGuard client(s) will connect to
+        // Required if WireGuard is enabled.
         // 'hostName' => 'vpn.example',
 
         // The port the WireGuard client(s) will connect to
@@ -195,6 +196,7 @@ return [
         // 'daemonUri' => 'http://localhost:8080',
 
         // IP address(es) of DNS server(s) to push to the client
+        // Required if WireGuard is enabled.
         // Quad9 (https://www.quad9.net)
         'dns' => ['9.9.9.9', '2620:fe::fe'],
     ]

@@ -315,7 +315,7 @@ try {
     /* @var false|WGEnabledConfig $wgConfig */
     if (true === $wgProvidedConfig->optionalBool('enabled')) {
         $wgHttpClient = new CurlHttpClient();
-        $wgDaemonClient = new WGDaemonClient($wgHttpClient, $wgProvidedConfig->requireString('daemonUri'));
+        $wgDaemonClient = new WGDaemonClient($wgHttpClient, $wgProvidedConfig->requireString('daemonUri', 'http://localhost:8080'));
 
         $dnsArray = $wgProvidedConfig->requireArray('dns');
         foreach ($dnsArray as $dns) {
@@ -327,7 +327,7 @@ try {
         $wgConfig = new WGEnabledConfig(
             $wgDaemonClient,
             $wgProvidedConfig->requireString('hostName'),
-            $wgProvidedConfig->requireInt('port'),
+            $wgProvidedConfig->requireInt('port', 51820),
             $dnsArray
         );
 
