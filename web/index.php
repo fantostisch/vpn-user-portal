@@ -17,7 +17,6 @@ use fkooman\SeCookie\CookieOptions;
 use fkooman\SeCookie\Session;
 use fkooman\SeCookie\SessionOptions;
 use LC\Common\Config;
-use LC\Common\Exception\ConfigException;
 use LC\Common\FileIO;
 use LC\Common\Http\CsrfProtectionHook;
 use LC\Common\Http\HtmlResponse;
@@ -55,7 +54,6 @@ use LC\Portal\TwoFactorEnrollModule;
 use LC\Portal\UpdateSessionInfoHook;
 use LC\Portal\VpnPortalModule;
 use LC\Portal\WireGuard\EnableWireGuardHook;
-use LC\Portal\WireGuard\WGDaemonClient;
 use LC\Portal\WireGuard\WGEnabledConfig;
 use LC\Portal\WireGuard\WireGuardPortalModule;
 
@@ -310,38 +308,6 @@ try {
 
     $clientFetcher = new ClientFetcher($config);
 
-    $wgProvidedConfig = $config->s('WireGuard');
-
-    /* @var false|WGEnabledConfig $wgConfig */
-    if (true === $wgProvidedConfig->optionalBool('enabled')) {
-        $wgHttpClient = new CurlHttpClient();
-        $wgDaemonClient = new WGDaemonClient($wgHttpClient, $wgProvidedConfig->requireString('daemonUri', 'http://localhost:8080'));
-
-        $dnsArray = $wgProvidedConfig->requireArray('dns');
-        foreach ($dnsArray as $dns) {
-            if (!is_string($dns)) {
-                throw new ConfigException('DNS provided for WireGuard "'.$dns.'" was not a string.');
-            }
-        }
-
-        $wgConfig = new WGEnabledConfig(
-            $wgDaemonClient,
-            $wgProvidedConfig->requireString('hostName'),
-            $wgProvidedConfig->requireInt('port', 51820),
-            $dnsArray
-        );
-
-        $wireguardPortalModule = new WireGuardPortalModule($tpl, $wgConfig);
-        $service->addModule($wireguardPortalModule);
-
-        $service->addBeforeHook(
-            'enableWireGuard',
-            new EnableWireGuardHook($tpl)
-        );
-    } else {
-        $wgConfig = false;
-    }
-
     // portal module
     $vpnPortalModule = new VpnPortalModule(
         $config,
@@ -352,6 +318,18 @@ try {
         $clientFetcher
     );
     $service->addModule($vpnPortalModule);
+
+    $wgConfig = WGEnabledConfig::fromConfig($config);
+
+    if ($wgConfig instanceof WGEnabledConfig) {
+        $wireguardPortalModule = new WireGuardPortalModule($tpl, $wgConfig);
+        $service->addModule($wireguardPortalModule);
+
+        $service->addBeforeHook(
+            'enableWireGuard',
+            new EnableWireGuardHook($tpl)
+        );
+    }
 
     $adminPortalModule = new AdminPortalModule(
         $tpl,

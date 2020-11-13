@@ -24,6 +24,8 @@ use LC\Portal\ClientFetcher;
 use LC\Portal\OAuth\BearerValidator;
 use LC\Portal\Storage;
 use LC\Portal\VpnApiModule;
+use LC\Portal\WireGuard\WGEnabledConfig;
+use LC\Portal\WireGuard\WireGuardApiModule;
 
 $logger = new Logger('vpn-user-api');
 
@@ -86,6 +88,14 @@ try {
         new DateInterval($config->requireString('sessionExpiry'))
     );
     $service->addModule($vpnApiModule);
+
+    $wgConfig = WGEnabledConfig::fromConfig($config);
+
+    if ($wgConfig instanceof WGEnabledConfig) {
+        $wireguardApiModule = new WireGuardApiModule($wgConfig);
+        $service->addModule($wireguardApiModule);
+    }
+
     $service->run($request)->send();
 } catch (Exception $e) {
     $logger->error($e->getMessage());
