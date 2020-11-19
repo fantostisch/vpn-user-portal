@@ -63,8 +63,7 @@ class WGDaemonClient
      */
     public function createConfig($userId)
     {
-        //todo: remove name after name is removed from Daemon
-        $result = $this->httpClient->post($this->baseUrl.'/create_config_and_key_pair', [], ['user_id' => $userId, 'name' => 'deprecated']);
+        $result = $this->httpClient->post($this->baseUrl.'/create_config_and_key_pair', [], ['user_id' => $userId]);
         $responseCode = $result->getCode();
         $responseString = $result->getBody();
         $this->assertSuccess([], $responseCode, $responseString);
