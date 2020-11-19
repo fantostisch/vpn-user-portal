@@ -31,7 +31,7 @@ class WireGuardApiModule implements ServiceModuleInterface
     public function init(Service $service)
     {
         $service->get(
-            '/wireguard_enabled',
+            '/wg/available',
             /**
              * @return Response
              */
