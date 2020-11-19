@@ -9,10 +9,10 @@
 
 namespace LC\Portal\Tests;
 
-use LC\Portal\WireGuard\TypeCreator;
-use LC\Portal\WireGuard\ValidationError;
-use LC\Portal\WireGuard\WGClientConnection;
-use LC\Portal\WireGuard\WGDaemonError;
+use LC\Portal\WireGuard\Daemon\WGDaemonError;
+use LC\Portal\WireGuard\Manager\WGClientConnection;
+use LC\Portal\WireGuard\Validator\TypeCreator;
+use LC\Portal\WireGuard\Validator\ValidationError;
 use PHPUnit\Framework\TestCase;
 
 class Foo
@@ -26,16 +26,21 @@ class Foo
     /** @var array<WGClientConnection> */
     public $connections;
 
+    /** @var string */
+    public $optionalString;
+
     /**
-     * @param WGClientConnection                             $wgClientConnection Connection
-     * @param array<string>                                  $stringArray
-     * @param array<\LC\Portal\WireGuard\WGClientConnection> $connections        Connections
+     * @param WGClientConnection                                     $wgClientConnection Connection
+     * @param array<string>                                          $stringArray
+     * @param array<\LC\Portal\WireGuard\Manager\WGClientConnection> $connections        Connections
+     * @param string                                                 $optionalString
      */
-    public function __construct(WGClientConnection $wgClientConnection, array $stringArray, array $connections)
+    public function __construct(WGClientConnection $wgClientConnection, array $stringArray, array $connections, $optionalString = 'defaultValue')
     {
         $this->wgClientConnection = $wgClientConnection;
         $this->stringArray = $stringArray;
         $this->connections = $connections;
+        $this->optionalString = $optionalString;
     }
 }
 
@@ -43,9 +48,9 @@ class TypeCreatorTest extends TestCase
 {
     public function testValidData()
     {
-        $wgConnection1 = new WGClientConnection('publicKey1===', 'My Config 1', ['ip1', 'ip1']);
-        $wgConnection2 = new WGClientConnection('publicKey2===', 'My config 2', ['ip2', 'ip2']);
-        $wgConnection3 = new WGClientConnection('publicKey3===', 'My config 3', ['ip3', 'ip3']);
+        $wgConnection1 = new WGClientConnection('publicKey1===', 'My Config 1', 'clientId1', ['ip1', 'ip1']);
+        $wgConnection2 = new WGClientConnection('publicKey2===', 'My config 2', 'clientId2', ['ip2', 'ip2']);
+        $wgConnection3 = new WGClientConnection('publicKey3===', 'My config 3', 'clientId3', ['ip3', 'ip3']);
 
         $tests = [
             ['string' => 'test'],
@@ -58,15 +63,18 @@ class TypeCreatorTest extends TestCase
             ['double' => 3.1],
             ['bool' => true],
             ['bool' => false],
+            ['null' => null],
             ['3 | "String Literal 1" | "String Literal 2"' => 'String Literal 2'],
+            ['null|string' => null],
             ['array<string>' => ['1', '2', '3', 'foo']],
             ['array<int>' => [1, 2, 3]],
             ['array<string,string>' => ['k1' => 'v1', 'k2' => 'v2', 'k3' => 'v3']],
-            ['\LC\Portal\WireGuard\WGClientConnection' => $wgConnection1],
-            ['\LC\Portal\WireGuard\WGDaemonError' => new WGDaemonError('user_already_disabled', 'Error description.')],
-            ['array<\LC\Portal\WireGuard\WGClientConnection>' => [$wgConnection1, $wgConnection2, $wgConnection3]],
-            ['array<string,array<\LC\Portal\WireGuard\WGClientConnection>>' => ['k1' => [$wgConnection1], 'k2' => [$wgConnection2, $wgConnection3], 'k3' => []]],
+            ['\LC\Portal\WireGuard\Manager\WGClientConnection' => $wgConnection1],
+            ['\LC\Portal\WireGuard\Daemon\WGDaemonError' => new WGDaemonError('user_already_disabled', 'Error description.')],
+            ['array<\LC\Portal\WireGuard\Manager\WGClientConnection>' => [$wgConnection1, $wgConnection2, $wgConnection3]],
+            ['array<string,array<\LC\Portal\WireGuard\Manager\WGClientConnection>>' => ['k1' => [$wgConnection1], 'k2' => [$wgConnection2, $wgConnection3], 'k3' => []]],
             ['\LC\Portal\Tests\Foo' => new Foo($wgConnection1, ['one', 'two', 'three'], [$wgConnection1, $wgConnection2, $wgConnection3])],
+            ['\LC\Portal\Tests\Foo' => new Foo($wgConnection1, ['one', 'two', 'three'], [$wgConnection1, $wgConnection2, $wgConnection3], 'not the default value')],
         ];
 
         foreach ($tests as $test) {
@@ -84,11 +92,12 @@ class TypeCreatorTest extends TestCase
 
     public function testMissingConstructorArgument()
     {
-        $type = '\LC\Portal\WireGuard\WGClientConnection';
+        $type = '\LC\Portal\WireGuard\Manager\WGClientConnection';
         $data = ['publicKey' => 'publicKey1===', 'ip' => ['ip1', 'ip2']];
         $expected = [
-            new ValidationError('Parameter "name" not provided for constructor of class LC\Portal\WireGuard\WGClientConnection.'),
-            new ValidationError('Parameter "allowedIPs" not provided for constructor of class LC\Portal\WireGuard\WGClientConnection.'),
+            new ValidationError('Required parameter "name" not provided for constructor of class LC\Portal\WireGuard\Manager\WGClientConnection.'),
+            new ValidationError('Required parameter "clientId" not provided for constructor of class LC\Portal\WireGuard\Manager\WGClientConnection.'),
+            new ValidationError('Required parameter "allowedIPs" not provided for constructor of class LC\Portal\WireGuard\Manager\WGClientConnection.'),
         ];
         $actual = TypeCreator::createType($type, json_decode(json_encode($data), true));
         $this->assertEquals($expected, $actual);
@@ -96,9 +105,9 @@ class TypeCreatorTest extends TestCase
 
     public function testConstructWithoutArgumentList()
     {
-        $type = '\LC\Portal\WireGuard\WGClientConnection';
+        $type = '\LC\Portal\WireGuard\Manager\WGClientConnection';
         $data = 'yeeh';
-        $expected = [new ValidationError('Could not create "LC\Portal\WireGuard\WGClientConnection because the value provided was not an array: "yeeh".')];
+        $expected = [new ValidationError('Could not create "LC\Portal\WireGuard\Manager\WGClientConnection because the value provided was not an array: \'yeeh\'.')];
         $actual = TypeCreator::createType($type, json_decode(json_encode($data), true));
         $this->assertEquals($expected, $actual);
     }

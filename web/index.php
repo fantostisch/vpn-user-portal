@@ -53,8 +53,10 @@ use LC\Portal\Tpl;
 use LC\Portal\TwoFactorEnrollModule;
 use LC\Portal\UpdateSessionInfoHook;
 use LC\Portal\VpnPortalModule;
+use LC\Portal\WireGuard\Daemon\WGDaemonClient;
 use LC\Portal\WireGuard\EnableWireGuardHook;
-use LC\Portal\WireGuard\WGEnabledConfig;
+use LC\Portal\WireGuard\Manager\WGEnabledConfig;
+use LC\Portal\WireGuard\Manager\WGManager;
 use LC\Portal\WireGuard\WireGuardPortalModule;
 
 $logger = new Logger('vpn-user-portal');
@@ -322,20 +324,24 @@ try {
     $wgConfig = WGEnabledConfig::fromConfig($config);
 
     if ($wgConfig instanceof WGEnabledConfig) {
-        $wireguardPortalModule = new WireGuardPortalModule($tpl, $wgConfig);
+        $wgHttpClient = new CurlHttpClient();
+        $wgDaemonClient = new WGDaemonClient($wgHttpClient, $wgConfig->daemonUri);
+        $wgManager = new WGManager($wgConfig, $storage, $wgDaemonClient);
+        $wireguardPortalModule = new WireGuardPortalModule($tpl, $wgManager);
         $service->addModule($wireguardPortalModule);
-
         $service->addBeforeHook(
             'enableWireGuard',
             new EnableWireGuardHook($tpl)
         );
+    } else {
+        $wgManager = false;
     }
 
     $adminPortalModule = new AdminPortalModule(
         $tpl,
         $storage,
         $serverClient,
-        $wgConfig
+        $wgManager
     );
     $service->addModule($adminPortalModule);
 

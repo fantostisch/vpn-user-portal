@@ -7,7 +7,7 @@
  * SPDX-License-Identifier: AGPL-3.0+
  */
 
-namespace LC\Portal\WireGuard;
+namespace LC\Portal\WireGuard\Daemon;
 
 /**
  * @psalm-immutable

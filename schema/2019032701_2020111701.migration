@@ -1,0 +1,6 @@
+CREATE TABLE wireguard_configs (
+  user_id VARCHAR(255) NOT NULL,
+  public_key VARCHAR(255) UNIQUE NOT NULL,
+  display_name VARCHAR(255) NOT NULL,
+  client_id VARCHAR(255) DEFAULT NULL
+);

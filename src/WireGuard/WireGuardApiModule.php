@@ -13,18 +13,16 @@ use LC\Common\Http\Request;
 use LC\Common\Http\Response;
 use LC\Common\Http\Service;
 use LC\Common\Http\ServiceModuleInterface;
+use LC\Portal\WireGuard\Manager\WGManager;
 
 class WireGuardApiModule implements ServiceModuleInterface
 {
-    /** @var \LC\Portal\WireGuard\WGEnabledConfig */
-    private $wgConfig;
+    /** @var \LC\Portal\WireGuard\Manager\WGManager */
+    private $wgManager;
 
-    /**
-     * @param \LC\Portal\WireGuard\WGEnabledConfig $wgConfig
-     */
-    public function __construct($wgConfig)
+    public function __construct(WGManager $wgManager)
     {
-        $this->wgConfig = $wgConfig;
+        $this->wgManager = $wgManager;
     }
 
     /**

@@ -12,14 +12,17 @@ namespace LC\Portal;
 use DateInterval;
 use DateTime;
 use fkooman\OAuth\Server\StorageInterface;
+use fkooman\SAML\SP\Web\Exception\HttpException;
 use fkooman\SqliteMigrate\Migration;
 use LC\Common\Http\CredentialValidatorInterface;
 use LC\Common\Http\UserInfo;
+use LC\Portal\WireGuard\Storage\WGStorageClientConfig;
+use LC\Portal\WireGuard\Validator\TypeCreator;
 use PDO;
 
 class Storage implements CredentialValidatorInterface, StorageInterface
 {
-    const CURRENT_SCHEMA_VERSION = '2019032701';
+    const CURRENT_SCHEMA_VERSION = '2020111701';
 
     /** @var \PDO */
     private $db;
@@ -263,6 +266,141 @@ class Storage implements CredentialValidatorInterface, StorageInterface
         );
 
         $stmt->bindValue(':auth_key', $authKey, PDO::PARAM_STR);
+        $stmt->execute();
+    }
+
+    /**
+     * @psalm-type publicKey=string
+     *
+     * @param string $userId
+     *
+     * @return array<publicKey, WGStorageClientConfig>
+     */
+    public function getWGConfigs($userId)
+    {
+        $stmt = $this->db->prepare(
+            <<< 'SQL'
+    SELECT
+        user_id, 
+        public_key, 
+        display_name, 
+        client_id
+    FROM 
+        wireguard_configs
+    WHERE 
+        user_id = :user_id
+SQL
+        );
+        $stmt->bindValue(':user_id', $userId, PDO::PARAM_STR);
+        $stmt->execute();
+
+        /** @var array<WGStorageClientConfig> $storageConfigs */
+        $storageConfigs = TypeCreator::createTypeThrowIfError(
+            "array<\LC\Portal\WireGuard\Storage\WGStorageClientConfig>",
+            $stmt->fetchAll(PDO::FETCH_ASSOC),
+            'Invalid data in database! Could not convert data to client configurations.'
+        );
+
+        $configs = [];
+        foreach ($storageConfigs as $storageConfig) {
+            $configs[$storageConfig->publicKey] = $storageConfig;
+        }
+
+        return $configs;
+    }
+
+    /**
+     * @param string $userId
+     * @param string $publicKey
+     *
+     * @return WGStorageClientConfig|null
+     */
+    public function getWGConfig($userId, $publicKey)
+    {
+        $stmt = $this->db->prepare(
+            <<< 'SQL'
+    SELECT
+        user_id,
+        public_key,
+        display_name,
+        client_id
+    FROM
+        wireguard_configs
+    WHERE
+        user_id = :user_id
+    AND
+        public_key = :public_key
+SQL
+        );
+        $stmt->bindValue(':user_id', $userId, PDO::PARAM_STR);
+        $stmt->bindValue(':public_key', $publicKey, PDO::PARAM_STR);
+        $stmt->execute();
+
+        $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $resultCount = \count($result);
+        switch ($resultCount) {
+            case 0:
+                return null;
+            case 1:
+                break;
+            default:
+                throw new HttpException(500, 'Invalid data in database! '.$resultCount.' results, only 1 expected.');
+        }
+
+        return TypeCreator::createTypeThrowIfError(
+            "\LC\Portal\WireGuard\Storage\WGStorageClientConfig",
+            $result[0],
+            'Invalid data in database! Could not convert data to client configuration.'
+        );
+    }
+
+    /**
+     * @param string      $userId
+     * @param string      $publicKey
+     * @param string      $displayName
+     * @param string|null $clientId
+     *
+     * @return void
+     */
+    public function addWGConfig($userId, $publicKey, $displayName, $clientId)
+    {
+        $stmt = $this->db->prepare(
+            <<< 'SQL'
+    INSERT INTO wireguard_configs
+        (user_id, public_key, display_name, client_id)
+    VALUES
+        (:user_id, :public_key, :display_name, :client_id)
+SQL
+        );
+        $stmt->bindValue(':user_id', $userId, PDO::PARAM_STR);
+        $stmt->bindValue(':public_key', $publicKey, PDO::PARAM_STR);
+        $stmt->bindValue(':display_name', $displayName, PDO::PARAM_STR);
+        $stmt->bindValue(':client_id', $clientId, PDO::PARAM_STR | PDO::PARAM_NULL);
+        $stmt->execute();
+    }
+
+    /**
+     * //todo: /delete_user in the api does not delete the WireGuard configurations.
+     *
+     * @param string $userId
+     * @param string $publicKey
+     *
+     * @return void
+     */
+    public function deleteWGConfig($userId, $publicKey)
+    {
+        $stmt = $this->db->prepare(
+            <<< 'SQL'
+    DELETE FROM
+        wireguard_configs
+    WHERE
+        user_id = :user_id
+    AND
+        public_key = :public_key
+SQL
+        );
+        $stmt->bindValue(':user_id', $userId, PDO::PARAM_STR);
+        $stmt->bindValue(':public_key', $publicKey, PDO::PARAM_STR);
         $stmt->execute();
     }
 

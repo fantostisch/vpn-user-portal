@@ -24,7 +24,9 @@ use LC\Portal\ClientFetcher;
 use LC\Portal\OAuth\BearerValidator;
 use LC\Portal\Storage;
 use LC\Portal\VpnApiModule;
-use LC\Portal\WireGuard\WGEnabledConfig;
+use LC\Portal\WireGuard\Daemon\WGDaemonClient;
+use LC\Portal\WireGuard\Manager\WGEnabledConfig;
+use LC\Portal\WireGuard\Manager\WGManager;
 use LC\Portal\WireGuard\WireGuardApiModule;
 
 $logger = new Logger('vpn-user-api');
@@ -92,7 +94,10 @@ try {
     $wgConfig = WGEnabledConfig::fromConfig($config);
 
     if ($wgConfig instanceof WGEnabledConfig) {
-        $wireguardApiModule = new WireGuardApiModule($wgConfig);
+        $wgHttpClient = new CurlHttpClient();
+        $wgDaemonClient = new WGDaemonClient($wgHttpClient, $wgConfig->daemonUri);
+        $wgManager = new WGManager($wgConfig, $storage, $wgDaemonClient);
+        $wireguardApiModule = new WireGuardApiModule($wgManager);
         $service->addModule($wireguardApiModule);
     }
 

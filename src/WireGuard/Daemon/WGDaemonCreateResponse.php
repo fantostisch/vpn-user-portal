@@ -7,12 +7,12 @@
  * SPDX-License-Identifier: AGPL-3.0+
  */
 
-namespace LC\Portal\WireGuard;
+namespace LC\Portal\WireGuard\Daemon;
 
 /**
  * @psalm-immutable
  */
-class CreateResponse
+class WGDaemonCreateResponse
 {
     /** @var string */
     public $ip;
@@ -21,17 +21,22 @@ class CreateResponse
     public $clientPrivateKey;
 
     /** @var string */
+    public $clientPublicKey;
+
+    /** @var string */
     public $serverPublicKey;
 
     /**
      * @param string $ip
      * @param string $clientPrivateKey
+     * @param string $clientPublicKey
      * @param string $serverPublicKey
      */
-    public function __construct($ip, $clientPrivateKey, $serverPublicKey)
+    public function __construct($ip, $clientPrivateKey, $clientPublicKey, $serverPublicKey)
     {
         $this->ip = $ip;
         $this->clientPrivateKey = $clientPrivateKey;
+        $this->clientPublicKey = $clientPublicKey;
         $this->serverPublicKey = $serverPublicKey;
     }
 }

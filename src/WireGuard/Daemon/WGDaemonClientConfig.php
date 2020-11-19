@@ -7,16 +7,13 @@
  * SPDX-License-Identifier: AGPL-3.0+
  */
 
-namespace LC\Portal\WireGuard;
+namespace LC\Portal\WireGuard\Daemon;
 
 /**
  * @psalm-immutable
  */
-class WGClientConfig
+class WGDaemonClientConfig
 {
-    /** @var string */
-    public $name;
-
     /** @var string */
     public $ip;
 
@@ -24,13 +21,11 @@ class WGClientConfig
     public $modified;
 
     /**
-     * @param string $name
      * @param string $ip
      * @param string $modified
      */
-    public function __construct($name, $ip, $modified)
+    public function __construct($ip, $modified)
     {
-        $this->name = $name;
         $this->ip = $ip;
         $this->modified = $modified;
     }

@@ -7,11 +7,12 @@
  * SPDX-License-Identifier: AGPL-3.0+
  */
 
-namespace LC\Portal\WireGuard;
+namespace LC\Portal\WireGuard\Daemon;
 
 use LC\Common\Http\Exception\HttpException;
 use LC\Common\HttpClient\HttpClientInterface;
 use LC\Common\Json;
+use LC\Portal\WireGuard\Validator\TypeCreator;
 
 class WGDaemonClient
 {
@@ -35,7 +36,7 @@ class WGDaemonClient
      *
      * @throws HttpException
      *
-     * @return array<string, WGClientConfig>
+     * @return array<string, WGDaemonClientConfig>
      */
     public function getConfigs($userId)
     {
@@ -47,21 +48,23 @@ class WGDaemonClient
         $decodedJson = Json::decode($responseString);
 
         $errorMessage = 'Invalid configurations received from WG Daemon';
-        /** @var array<string,\LC\Portal\WireGuard\WGClientConfig> $result */
-        $result = self::createTypeThrowIfError('array<string,\LC\Portal\WireGuard\WGClientConfig>', $decodedJson, $errorMessage);
+        /** @var array<string,WGDaemonClientConfig> $result */
+        $result = TypeCreator::createTypeThrowIfError('array<string,\LC\Portal\WireGuard\Daemon\WGDaemonClientConfig>', $decodedJson, $errorMessage);
 
         return $result;
     }
 
     /**
      * @param string $userId
-     * @param string $name
      *
-     * @return CreateResponse
+     * @throws HttpException
+     *
+     * @return WGDaemonCreateResponse
      */
-    public function createConfig($userId, $name)
+    public function createConfig($userId)
     {
-        $result = $this->httpClient->post($this->baseUrl.'/create_config_and_key_pair', [], ['user_id' => $userId, 'name' => $name]);
+        //todo: remove name after name is removed from Daemon
+        $result = $this->httpClient->post($this->baseUrl.'/create_config_and_key_pair', [], ['user_id' => $userId, 'name' => 'deprecated']);
         $responseCode = $result->getCode();
         $responseString = $result->getBody();
         $this->assertSuccess([], $responseCode, $responseString);
@@ -69,8 +72,8 @@ class WGDaemonClient
         $decodedJson = Json::decode($responseString);
 
         $errorMessage = 'Invalid response from WG Daemon';
-        /** @var \LC\Portal\WireGuard\CreateResponse $result */
-        $result = self::createTypeThrowIfError('\LC\Portal\WireGuard\CreateResponse', $decodedJson, $errorMessage);
+        /** @var \LC\Portal\WireGuard\Daemon\WGDaemonCreateResponse $result */
+        $result = TypeCreator::createTypeThrowIfError('\LC\Portal\WireGuard\Daemon\WGDaemonCreateResponse', $decodedJson, $errorMessage);
 
         return $result;
     }
@@ -78,6 +81,8 @@ class WGDaemonClient
     /**
      * @param string $userId
      * @param string $publicKey
+     *
+     * @throws HttpException
      *
      * @return void
      */
@@ -92,6 +97,8 @@ class WGDaemonClient
     /**
      * @param string $userId
      *
+     * @throws HttpException
+     *
      * @return void
      */
     public function disableUser($userId)
@@ -104,6 +111,8 @@ class WGDaemonClient
 
     /**
      * @param string $userId
+     *
+     * @throws HttpException
      *
      * @return void
      */
@@ -118,7 +127,9 @@ class WGDaemonClient
     /**
      * @psalm-type userID=string
      *
-     * @return array<userID, array<WGClientConnection>>
+     * @throws HttpException
+     *
+     * @return array<userID, array<WGDaemonClientConnection>>
      */
     public function getClientConnections()
     {
@@ -130,8 +141,8 @@ class WGDaemonClient
         $decodedJson = Json::decode($responseString);
 
         $errorMessage = 'Invalid connections received from WG Daemon';
-        /** @var array<array<\LC\Portal\WireGuard\WGClientConnection>> $result */
-        $result = self::createTypeThrowIfError('array<string,array<\LC\Portal\WireGuard\WGClientConnection>>', $decodedJson, $errorMessage);
+        /** @var array<array<\LC\Portal\WireGuard\Daemon\WGDaemonClientConnection>> $result */
+        $result = TypeCreator::createTypeThrowIfError('array<string,array<\LC\Portal\WireGuard\Daemon\WGDaemonClientConnection>>', $decodedJson, $errorMessage);
 
         return $result;
     }
@@ -140,6 +151,8 @@ class WGDaemonClient
      * @param array<"config_not_found" | "user_already_enabled" | "user_already_disabled"> $allowedErrors
      * @param int                                                                          $responseCode
      * @param string                                                                       $responseString
+     *
+     * @throws HttpException
      *
      * @return void
      */
@@ -152,7 +165,7 @@ class WGDaemonClient
             $decodedJson = Json::decode($responseString);
             $errorMessage = 'Got an error from the WG Daemon but could not decode it.';
             /** @var WGDaemonError $result */
-            $error = self::createTypeThrowIfError('\LC\Portal\WireGuard\WGDaemonError', $decodedJson, $errorMessage);
+            $error = TypeCreator::createTypeThrowIfError('\LC\Portal\WireGuard\Daemon\WGDaemonError', $decodedJson, $errorMessage);
             if (\in_array($error->errorType, $allowedErrors, true)) {
                 return;
             } else {
@@ -160,25 +173,5 @@ class WGDaemonClient
             }
         }
         throw new HttpException('Unexpected response code from WireGuard Daemon: "'.$responseCode.'". Response: '.$responseString, 500);
-    }
-
-    /**
-     * @param string $typeName
-     * @param mixed  $value
-     * @param string $errorMessage
-     *
-     * @throws HttpException
-     *
-     * @return mixed
-     */
-    private static function createTypeThrowIfError($typeName, $value, $errorMessage)
-    {
-        $result = TypeCreator::createType($typeName, $value);
-
-        if (!ValidationError::isValid($result)) {
-            throw new HttpException((new ValidationError($errorMessage, $result))->__toString(), 500);
-        }
-
-        return $result;
     }
 }

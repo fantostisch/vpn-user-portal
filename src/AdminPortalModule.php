@@ -24,7 +24,7 @@ use LC\Common\Http\ServiceModuleInterface;
 use LC\Common\HttpClient\ServerClient;
 use LC\Common\ProfileConfig;
 use LC\Common\TplInterface;
-use LC\Portal\WireGuard\WGEnabledConfig;
+use LC\Portal\WireGuard\Manager\WGManager;
 
 class AdminPortalModule implements ServiceModuleInterface
 {
@@ -40,19 +40,19 @@ class AdminPortalModule implements ServiceModuleInterface
     /** @var \DateTime */
     private $dateTime;
 
-    /** @var false|\LC\Portal\WireGuard\WGEnabledConfig */
-    private $wgConfig;
+    /** @var false|\LC\Portal\WireGuard\Manager\WGManager */
+    private $wgManager;
 
     /**
-     * @param false|\LC\Portal\WireGuard\WGEnabledConfig $wgConfig
+     * @param false|\LC\Portal\WireGuard\Manager\WGManager $wgManager
      */
-    public function __construct(TplInterface $tpl, Storage $storage, ServerClient $serverClient, $wgConfig)
+    public function __construct(TplInterface $tpl, Storage $storage, ServerClient $serverClient, $wgManager)
     {
         $this->tpl = $tpl;
         $this->storage = $storage;
         $this->serverClient = $serverClient;
         $this->dateTime = new DateTime();
-        $this->wgConfig = $wgConfig;
+        $this->wgManager = $wgManager;
     }
 
     /**
@@ -81,8 +81,8 @@ class AdminPortalModule implements ServiceModuleInterface
                     'vpnConnections' => $this->serverClient->getRequireArray('client_connections'),
                 ];
 
-                if ($this->wgConfig instanceof WGEnabledConfig) {
-                    $wgUserConnections = $this->wgConfig->wgDaemonClient->getClientConnections();
+                if ($this->wgManager instanceof WGManager) {
+                    $wgUserConnections = $this->wgManager->getClientConnections();
                     $amountOfWGConnections = array_sum(array_map('\count', $wgUserConnections));
 
                     $templateVariables['wgUserConnections'] = $wgUserConnections;
@@ -160,7 +160,7 @@ class AdminPortalModule implements ServiceModuleInterface
                 InputValidation::userId($userId);
 
                 $clientCertificateList = $this->serverClient->getRequireArray('client_certificate_list', ['user_id' => $userId]);
-                $wgConfigs = $this->wgConfig instanceof WGEnabledConfig ? $this->wgConfig->wgDaemonClient->getConfigs($userId) : false;
+                $wgConfigs = $this->wgManager instanceof WGManager ? $this->wgManager->getConfigs($userId) : false;
                 $userMessages = $this->serverClient->getRequireArray('user_messages', ['user_id' => $userId]);
 
                 $userConnectionLogEntries = $this->serverClient->getRequireArray('user_connection_log', ['user_id' => $userId]);
@@ -238,16 +238,16 @@ class AdminPortalModule implements ServiceModuleInterface
                             }
                         }
 
-                        if ($this->wgConfig instanceof WGEnabledConfig) {
-                            $this->wgConfig->wgDaemonClient->disableUser($userId);
+                        if ($this->wgManager instanceof WGManager) {
+                            $this->wgManager->disableUser($userId);
                         }
 
                         break;
 
                     case 'enableUser':
                         $this->serverClient->post('enable_user', ['user_id' => $userId]);
-                        if ($this->wgConfig instanceof WGEnabledConfig) {
-                            $this->wgConfig->wgDaemonClient->enableUser($userId);
+                        if ($this->wgManager instanceof WGManager) {
+                            $this->wgManager->enableUser($userId);
                         }
                         break;
 
