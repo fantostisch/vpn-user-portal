@@ -83,7 +83,7 @@ try {
         $localeDirs[] = sprintf('%s/config/locale/%s', $baseDir, $styleName);
     }
 
-    $sessionExpiry = $config->requireString('sessionExpiry');
+    $sessionExpiry = $config->requireString('sessionExpiry', 'P90D');
 
     // we always want browser session to expiry after PT8H hours, *EXCEPT* when
     // the configured "sessionExpiry" is < PT8H, then we want to follow that
@@ -112,7 +112,7 @@ try {
         )
     );
 
-    $supportedLanguages = $config->requireArray('supportedLanguages');
+    $supportedLanguages = $config->requireArray('supportedLanguages', ['en_US' => 'English']);
     // the first listed language is the default language
     $uiLang = array_keys($supportedLanguages)[0];
     if (null !== $cookieUiLang = $seCookie->get('ui_lang')) {
@@ -120,7 +120,7 @@ try {
     }
 
     // Authentication
-    $authMethod = $config->requireString('authMethod');
+    $authMethod = $config->requireString('authMethod', 'FormPdoAuthentication');
 
     $tpl = new Tpl($templateDirs, $localeDirs, sprintf('%s/web', $baseDir));
     $tpl->setLanguage($uiLang);
