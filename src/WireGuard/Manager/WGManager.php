@@ -11,8 +11,8 @@ namespace LC\Portal\WireGuard\Manager;
 
 use LC\Common\Http\Exception\HttpException;
 use LC\Common\Http\InputValidation;
-use LC\Common\TplInterface;
 use LC\Portal\Storage;
+use LC\Portal\Tpl;
 use LC\Portal\WireGuard\Daemon\WGDaemonClient;
 use LC\Portal\WireGuard\Storage\WGStorageClientConfig;
 
@@ -27,11 +27,18 @@ class WGManager
     /** @var WGDaemonClient */
     private $daemonClient;
 
-    public function __construct(WGEnabledConfig $portalConfig, Storage $storage, WGDaemonClient $daemonClient)
+    /** @var Tpl */
+    private $tpl;
+
+    /**
+     * @param string $baseDir
+     */
+    public function __construct(WGEnabledConfig $portalConfig, Storage $storage, WGDaemonClient $daemonClient, $baseDir)
     {
         $this->config = $portalConfig;
         $this->storage = $storage;
         $this->daemonClient = $daemonClient;
+        $this->tpl = new Tpl([sprintf('%s/views', $baseDir)], [], sprintf('%s/web', $baseDir));
     }
 
     /**
@@ -69,31 +76,45 @@ class WGManager
     }
 
     /**
-     * @param string $userId
-     * @param string $displayName
+     * @param string      $userId
+     * @param string      $displayName
+     * @param string|null $clientId
+     * @param string|null $publicKey
      *
      * @throws \LC\Common\Http\Exception\InputValidationException
      *
      * @return string
      */
-    public function addConfig($userId, $displayName, TplInterface $tpl)
+    public function addConfig($userId, $displayName, $clientId, $publicKey = null)
     {
-        $validatedDisplayName = InputValidation::displayName($displayName);
-        $createResponse = $this->daemonClient->createConfig($userId);
+        $displayName = InputValidation::displayName($displayName);
+        $clientId = null === $clientId ? null : InputValidation::clientId($clientId);
+        if (\is_string($publicKey)) {
+            $response = $this->daemonClient->createConfig($userId, $publicKey);
+            $ip = $response->ip;
+            $clientPrivateKey = null;
+            $serverPublicKey = $response->serverPublicKey;
+        } else {
+            $kpResponse = $this->daemonClient->createConfig($userId);
+            $ip = $kpResponse->ip;
+            $publicKey = $kpResponse->clientPublicKey;
+            $clientPrivateKey = $kpResponse->clientPrivateKey;
+            $serverPublicKey = $kpResponse->serverPublicKey;
+        }
         try {
-            $this->storage->addWGConfig($userId, $createResponse->clientPublicKey, $validatedDisplayName, null);
+            $this->storage->addWGConfig($userId, $publicKey, $displayName, $clientId);
         } catch (\PDOException $e) {
-            $this->daemonClient->deleteConfig($userId, $createResponse->clientPublicKey);
+            $this->daemonClient->deleteConfig($userId, $publicKey);
             throw $e;
         }
-        $wgConfigFile = $tpl->render(
-            'vpnPortalWGConfigurationFile',
+        $wgConfigFile = $this->tpl->render(
+            'WGConfigurationFile',
             [
                 'hostName' => $this->config->hostName,
                 'port' => $this->config->port,
-                'clientIp' => $createResponse->ip,
-                'serverPublicKey' => $createResponse->serverPublicKey,
-                'clientPrivateKey' => $createResponse->clientPrivateKey,
+                'clientIp' => $ip,
+                'serverPublicKey' => $serverPublicKey,
+                'clientPrivateKey' => $clientPrivateKey,
                 'dnsServers' => $this->config->dns,
             ]
         );

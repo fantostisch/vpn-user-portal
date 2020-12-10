@@ -69,7 +69,7 @@ class WireGuardPortalModule implements ServiceModuleInterface
                 $userId = $userInfo->getUserId();
                 $displayName = $request->requirePostParameter('displayName');
 
-                $wgConfigFile = $this->wgManager->addConfig($userId, $displayName, $this->tpl);
+                $wgConfigFile = $this->wgManager->addConfig($userId, $displayName, null);
                 $wgConfigFileName = sprintf('%s_%s_%s.conf', $this->wgManager->getPortalConfig()->hostName, date('Ymd'), $displayName);
                 $wgConfigs = $this->wgManager->getConfigs($userId);
 

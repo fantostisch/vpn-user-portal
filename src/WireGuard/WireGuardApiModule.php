@@ -17,6 +17,8 @@ use LC\Portal\WireGuard\Manager\WGManager;
 
 class WireGuardApiModule implements ServiceModuleInterface
 {
+    const PREFIX = '/wg/';
+
     /** @var \LC\Portal\WireGuard\Manager\WGManager */
     private $wgManager;
 
@@ -31,13 +33,35 @@ class WireGuardApiModule implements ServiceModuleInterface
     public function init(Service $service)
     {
         $service->get(
-            '/wg/available',
+            self::PREFIX.'available',
             /**
              * @return Response
              */
             function (Request $request, array $hookData) {
                 $response = new Response(200, 'text/plain');
                 $response->setBody('y');
+
+                return $response;
+            }
+        );
+
+        $service->post(
+            self::PREFIX.'create_config',
+            /**
+             * @return Response
+             */
+            function (Request $request, array $hookData) {
+                /** @var \LC\Portal\OAuth\VpnAccessTokenInfo $accessTokenInfo */
+                $accessTokenInfo = $hookData['auth'];
+                $userId = $accessTokenInfo->getUserId();
+                $clientId = $accessTokenInfo->getClientId();
+                $displayName = $clientId;
+                $publicKey = $request->requirePostParameter('publicKey');
+
+                $wgConfigFile = $this->wgManager->addConfig($userId, $displayName, $clientId, $publicKey);
+
+                $response = new Response(200, 'text/plain');
+                $response->setBody($wgConfigFile);
 
                 return $response;
             }

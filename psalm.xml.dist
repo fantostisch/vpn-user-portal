@@ -5,6 +5,7 @@
         <directory name="src"/>
         <directory name="web"/>
         <file name="views/vpnPortalWG*"/>
+        <file name="views/WG*"/>
         <ignoreFiles>
             <directory name="vendor"/>
         </ignoreFiles>

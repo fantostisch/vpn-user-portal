@@ -12,21 +12,31 @@ namespace LC\Portal\WireGuard\Daemon;
 /**
  * @psalm-immutable
  */
-class WGDaemonCreateResponse
+class WGDaemonCreateWithKPResponse
 {
     /** @var string */
     public $ip;
+
+    /** @var string */
+    public $clientPrivateKey;
+
+    /** @var string */
+    public $clientPublicKey;
 
     /** @var string */
     public $serverPublicKey;
 
     /**
      * @param string $ip
+     * @param string $clientPrivateKey
+     * @param string $clientPublicKey
      * @param string $serverPublicKey
      */
-    public function __construct($ip, $serverPublicKey)
+    public function __construct($ip, $clientPrivateKey, $clientPublicKey, $serverPublicKey)
     {
         $this->ip = $ip;
+        $this->clientPrivateKey = $clientPrivateKey;
+        $this->clientPublicKey = $clientPublicKey;
         $this->serverPublicKey = $serverPublicKey;
     }
 }

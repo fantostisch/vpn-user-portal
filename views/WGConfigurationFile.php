@@ -6,12 +6,14 @@
  * @var int           $port
  * @var string        $clientIp
  * @var string        $serverPublicKey
- * @var string        $clientPrivateKey
+ * @var string|null   $clientPrivateKey
  * @var array<string> $dnsServers
  */ ?>
 [Interface]
+<?php if (is_string($clientPrivateKey)): ?>
 PrivateKey = <?= $clientPrivateKey; ?>
 
+<?php endif; ?>
 DNS = <?= implode(',', $dnsServers); ?>
 
 Address = <?= $clientIp; ?>

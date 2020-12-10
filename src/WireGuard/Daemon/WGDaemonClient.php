@@ -55,15 +55,21 @@ class WGDaemonClient
     }
 
     /**
-     * @param string $userId
+     * @param string      $userId
+     * @param string|null $publicKey
      *
      * @throws HttpException
      *
-     * @return WGDaemonCreateResponse
+     * @psalm-return ($publicKey is string ? WGDaemonCreateResponse : WGDaemonCreateWithKPResponse)
      */
-    public function createConfig($userId)
+    public function createConfig($userId, $publicKey = null)
     {
-        $result = $this->httpClient->post($this->baseUrl.'/create_config_and_key_pair', [], ['user_id' => $userId]);
+        if (\is_string($publicKey)) {
+            $result = $this->httpClient->post($this->baseUrl.'/create_config', [], ['user_id' => $userId, 'public_key' => $publicKey]);
+        } else {
+            $result = $this->httpClient->post($this->baseUrl.'/create_config_and_key_pair', [], ['user_id' => $userId]);
+        }
+
         $responseCode = $result->getCode();
         $responseString = $result->getBody();
         $this->assertSuccess([], $responseCode, $responseString);
@@ -71,8 +77,13 @@ class WGDaemonClient
         $decodedJson = Json::decode($responseString);
 
         $errorMessage = 'Invalid response from WG Daemon';
-        /** @var \LC\Portal\WireGuard\Daemon\WGDaemonCreateResponse $result */
-        $result = TypeCreator::createTypeThrowIfError('\LC\Portal\WireGuard\Daemon\WGDaemonCreateResponse', $decodedJson, $errorMessage);
+        if (\is_string($publicKey)) {
+            /** @var \LC\Portal\WireGuard\Daemon\WGDaemonCreateResponse $result */
+            $result = TypeCreator::createTypeThrowIfError('\LC\Portal\WireGuard\Daemon\WGDaemonCreateResponse', $decodedJson, $errorMessage);
+        } else {
+            /** @var \LC\Portal\WireGuard\Daemon\WGDaemonCreateWithKPResponse $result */
+            $result = TypeCreator::createTypeThrowIfError('\LC\Portal\WireGuard\Daemon\WGDaemonCreateWithKPResponse', $decodedJson, $errorMessage);
+        }
 
         return $result;
     }
