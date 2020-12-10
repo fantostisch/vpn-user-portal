@@ -132,6 +132,26 @@ class WGManager
      *
      * @throws HttpException
      *
+     * @return bool if the public key can be used to connect
+     */
+    public function checkPublicKey($userId, $publicKey)
+    {
+        $daemonConfigs = $this->daemonClient->getConfigs($userId);
+        foreach ($daemonConfigs as $publicKeyFromConfig => $_) {
+            if ($publicKey === $publicKeyFromConfig) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param string $userId
+     * @param string $publicKey
+     *
+     * @throws HttpException
+     *
      * @return void
      */
     public function deleteConfig($userId, $publicKey)

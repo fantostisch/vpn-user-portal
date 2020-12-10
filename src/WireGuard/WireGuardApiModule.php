@@ -66,5 +66,31 @@ class WireGuardApiModule implements ServiceModuleInterface
                 return $response;
             }
         );
+
+        $service->get(
+            self::PREFIX.'check_public_key',
+            /**
+             * @return Response
+             */
+            function (Request $request, array $hookData) {
+                /** @var \LC\Portal\OAuth\VpnAccessTokenInfo $accessTokenInfo */
+                $accessTokenInfo = $hookData['auth'];
+                $userId = $accessTokenInfo->getUserId();
+                $publicKey = $request->requireQueryParameter('publicKey');
+
+                $valid = $this->wgManager->checkPublicKey($userId, $publicKey);
+
+                if ($valid) {
+                    $responseBody = 'y';
+                } else {
+                    $responseBody = 'n';
+                }
+
+                $response = new Response(200, 'text/plain');
+                $response->setBody($responseBody);
+
+                return $response;
+            }
+        );
     }
 }
