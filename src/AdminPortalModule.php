@@ -160,7 +160,7 @@ class AdminPortalModule implements ServiceModuleInterface
                 InputValidation::userId($userId);
 
                 $clientCertificateList = $this->serverClient->getRequireArray('client_certificate_list', ['user_id' => $userId]);
-                $wgConfigs = $this->wgManager instanceof WGManager ? $this->wgManager->getConfigs($userId) : false;
+                $wgConfigs = $this->wgManager instanceof WGManager ? $this->wgManager->getConfigs($userId, true) : false;
                 $userMessages = $this->serverClient->getRequireArray('user_messages', ['user_id' => $userId]);
 
                 $userConnectionLogEntries = $this->serverClient->getRequireArray('user_connection_log', ['user_id' => $userId]);

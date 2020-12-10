@@ -15,6 +15,7 @@ use LC\Common\Http\Request;
 use LC\Common\Http\Service;
 use LC\Common\Http\ServiceModuleInterface;
 use LC\Common\TplInterface;
+use LC\Portal\WireGuard\Manager\WGClientConfig;
 use LC\Portal\WireGuard\Manager\WGManager;
 
 class WireGuardPortalModule implements ServiceModuleInterface
@@ -45,7 +46,7 @@ class WireGuardPortalModule implements ServiceModuleInterface
                 /** @var \LC\Common\Http\UserInfo */
                 $userInfo = $hookData['auth'];
                 $userId = $userInfo->getUserId();
-                $wgConfigs = $this->wgManager->getConfigs($userId);
+                $wgConfigs = $this->getConfigs($userId, $request);
 
                 return new HtmlResponse(
                     $this->tpl->render(
@@ -71,7 +72,7 @@ class WireGuardPortalModule implements ServiceModuleInterface
 
                 $wgConfigFile = $this->wgManager->addConfig($userId, $displayName, null);
                 $wgConfigFileName = sprintf('%s_%s_%s.conf', $this->wgManager->getPortalConfig()->hostName, date('Ymd'), $displayName);
-                $wgConfigs = $this->wgManager->getConfigs($userId);
+                $wgConfigs = $this->getConfigs($userId, $request);
 
                 return new HtmlResponse(
                     $this->tpl->render(
@@ -103,5 +104,22 @@ class WireGuardPortalModule implements ServiceModuleInterface
                 return new RedirectResponse($request->getRootUri().'WGConfigurations', 302);
             }
         );
+    }
+
+    /**
+     * @param string  $userId
+     * @param Request $request
+     *
+     * @throws \LC\Common\Http\Exception\HttpException
+     *
+     * @return array<WGClientConfig>
+     */
+    private function getConfigs($userId, $request)
+    {
+        // if query parameter "all" is set, show all certificates, also
+        // those issued to OAuth clients
+        $showAll = null !== $request->optionalQueryParameter('all');
+
+        return $this->wgManager->getConfigs($userId, $showAll);
     }
 }

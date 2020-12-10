@@ -51,12 +51,13 @@ class WGManager
 
     /**
      * @param string $userId
+     * @param bool   $all    if false, only return configs created in the portal
      *
      * @throws HttpException
      *
      * @return array<WGClientConfig>
      */
-    public function getConfigs($userId)
+    public function getConfigs($userId, $all = true)
     {
         $daemonConfigs = $this->daemonClient->getConfigs($userId);
         $storageConfigs = $this->storage->getWGConfigs($userId);
@@ -67,9 +68,12 @@ class WGManager
                 $storageConfig = $storageConfigs[$publicKey];
             } else {
                 // Storage is not in sync with daemon
-                $storageConfig = new WGStorageClientConfig($publicKey, 'unknown', 'unknown');
+                $storageConfig = new WGStorageClientConfig($publicKey, 'unknown', null);
             }
-            $configs[$publicKey] = WGClientConfig::from($daemonConfig, $storageConfig);
+            $filter = !$all && null !== $storageConfig->clientId;
+            if (!($filter)) {
+                $configs[$publicKey] = WGClientConfig::from($daemonConfig, $storageConfig);
+            }
         }
 
         return $configs;
@@ -153,7 +157,7 @@ class WGManager
                 $storageConfig = $this->storage->getWGConfig($userId, $daemonConnection->publicKey);
                 if (null === $storageConfig) {
                     // Storage is not in sync with daemon
-                    $storageConfig = new WGStorageClientConfig($daemonConnection->publicKey, 'unknown', 'unknown');
+                    $storageConfig = new WGStorageClientConfig($daemonConnection->publicKey, 'unknown', null);
                 }
 
                 return WGClientConnection::from($daemonConnection, $storageConfig);
