@@ -260,7 +260,6 @@ class VpnPortalModule implements ServiceModuleInterface
 
                 // verify whether the user_id owns the specified auth_key
                 $authorizations = $this->storage->getAuthorizations($userInfo->getUserId());
-                $authorizations = $this->storage->getAuthorizations($userInfo->getUserId());
 
                 $authKeyFound = false;
                 foreach ($authorizations as $authorization) {
