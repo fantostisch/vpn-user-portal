@@ -12,9 +12,9 @@ namespace LC\Portal;
 use DateInterval;
 use DateTime;
 use fkooman\OAuth\Server\StorageInterface;
-use fkooman\SAML\SP\Web\Exception\HttpException;
 use fkooman\SqliteMigrate\Migration;
 use LC\Common\Http\CredentialValidatorInterface;
+use LC\Common\Http\Exception\HttpException;
 use LC\Common\Http\UserInfo;
 use LC\Portal\WireGuard\Storage\WGStorageClientConfig;
 use LC\Portal\WireGuard\Validator\TypeCreator;
@@ -344,7 +344,7 @@ SQL
             case 1:
                 break;
             default:
-                throw new HttpException(500, 'Invalid data in database! '.$resultCount.' results, only 1 expected.');
+                throw new HttpException('Invalid data in database! '.$resultCount.' results, only 1 expected.', 500);
         }
 
         return TypeCreator::createTypeThrowIfError(
