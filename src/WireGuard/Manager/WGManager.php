@@ -127,15 +127,26 @@ class WGManager
     }
 
     /**
-     * @param string $userId
-     * @param string $publicKey
+     * @param string      $userId
+     * @param string      $publicKey
+     * @param string|null $clientId
      *
      * @throws HttpException
      *
      * @return void
      */
-    public function deleteConfig($userId, $publicKey)
+    public function deleteConfig($userId, $publicKey, $clientId)
     {
+        if (null !== $clientId) {
+            $storageConfig = $this->storage->getWGConfig($userId, $publicKey);
+            if (null !== $storageConfig) {
+                if ($storageConfig->clientId !== $clientId) {
+                    // How did a client that did not create this config know that this config exists?
+                    return;
+                }
+            }
+        }
+
         $this->daemonClient->deleteConfig($userId, $publicKey);
         $this->storage->deleteWGConfig($userId, $publicKey);
     }

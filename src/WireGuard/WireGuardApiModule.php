@@ -9,10 +9,12 @@
 
 namespace LC\Portal\WireGuard;
 
+use LC\Common\Http\Exception\HttpException;
 use LC\Common\Http\Request;
 use LC\Common\Http\Response;
 use LC\Common\Http\Service;
 use LC\Common\Http\ServiceModuleInterface;
+use LC\Portal\OAuth\VpnAccessTokenInfo;
 use LC\Portal\WireGuard\Manager\WGManager;
 
 class WireGuardApiModule implements ServiceModuleInterface
@@ -54,7 +56,7 @@ class WireGuardApiModule implements ServiceModuleInterface
                 /** @var \LC\Portal\OAuth\VpnAccessTokenInfo $accessTokenInfo */
                 $accessTokenInfo = $hookData['auth'];
                 $userId = $accessTokenInfo->getUserId();
-                $clientId = $accessTokenInfo->getClientId();
+                $clientId = $this->getClientId($accessTokenInfo);
                 $displayName = $clientId;
                 $publicKey = $request->requirePostParameter('publicKey');
 
@@ -66,5 +68,43 @@ class WireGuardApiModule implements ServiceModuleInterface
                 return $response;
             }
         );
+
+        $service->post(
+            self::PREFIX.'disconnect',
+            /**
+             * Client should call this when disconnecting.
+             * The existing config can no longer be used after calling this.
+             *
+             * @return Response
+             */
+            function (Request $request, array $hookData) {
+                /** @var \LC\Portal\OAuth\VpnAccessTokenInfo $accessTokenInfo */
+                $accessTokenInfo = $hookData['auth'];
+                $userId = $accessTokenInfo->getUserId();
+                $clientId = $this->getClientId($accessTokenInfo);
+                $publicKey = $request->requirePostParameter('publicKey');
+
+                $this->wgManager->deleteConfig($userId, $publicKey, $clientId);
+
+                return new Response(204);
+            }
+        );
+    }
+
+    /**
+     * @psalm-suppress DocblockTypeContradiction
+     *
+     * @throws HttpException
+     *
+     * @return string
+     */
+    private function getClientId(VpnAccessTokenInfo $accessTokenInfo)
+    {
+        $clientId = $accessTokenInfo->getClientId();
+        if (null === $clientId) {
+            throw new HttpException('Invalid clientId', 400);
+        }
+
+        return $clientId;
     }
 }

@@ -99,7 +99,7 @@ class WireGuardPortalModule implements ServiceModuleInterface
                 $userId = $userInfo->getUserId();
                 $publicKey = $request->requirePostParameter('publicKey');
 
-                $this->wgManager->deleteConfig($userId, $publicKey);
+                $this->wgManager->deleteConfig($userId, $publicKey, null);
 
                 return new RedirectResponse($request->getRootUri().'WGConfigurations', 302);
             }
