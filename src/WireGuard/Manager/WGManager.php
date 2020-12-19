@@ -11,10 +11,14 @@ namespace LC\Portal\WireGuard\Manager;
 
 use LC\Common\Http\Exception\HttpException;
 use LC\Common\Http\InputValidation;
+use LC\Common\HttpClient\ServerClient;
 use LC\Portal\Storage;
 use LC\Portal\Tpl;
+use LC\Portal\WireGuard\Daemon\NoIPAvailableException;
 use LC\Portal\WireGuard\Daemon\WGDaemonClient;
 use LC\Portal\WireGuard\Storage\WGStorageClientConfig;
+use LC\Portal\WireGuard\Validator\TypeCreator;
+use LC\Portal\WireGuard\Validator\ValidationError;
 
 class WGManager
 {
@@ -30,15 +34,19 @@ class WGManager
     /** @var Tpl */
     private $tpl;
 
+    /** @var \LC\Common\HttpClient\ServerClient */
+    private $serverClient;
+
     /**
      * @param string $baseDir
      */
-    public function __construct(WGEnabledConfig $portalConfig, Storage $storage, WGDaemonClient $daemonClient, $baseDir)
+    public function __construct(WGEnabledConfig $portalConfig, Storage $storage, WGDaemonClient $daemonClient, $baseDir, ServerClient $serverClient)
     {
         $this->config = $portalConfig;
         $this->storage = $storage;
         $this->daemonClient = $daemonClient;
         $this->tpl = new Tpl([sprintf('%s/views', $baseDir)], [], sprintf('%s/web', $baseDir));
+        $this->serverClient = $serverClient;
     }
 
     /**
@@ -93,18 +101,28 @@ class WGManager
     {
         $displayName = InputValidation::displayName($displayName);
         $clientId = null === $clientId ? null : InputValidation::clientId($clientId);
-        if (\is_string($publicKey)) {
-            $response = $this->daemonClient->createConfig($userId, $publicKey);
-            $ip = $response->ip;
-            $clientPrivateKey = null;
-            $serverPublicKey = $response->serverPublicKey;
-        } else {
-            $kpResponse = $this->daemonClient->createConfig($userId);
-            $ip = $kpResponse->ip;
-            $publicKey = $kpResponse->clientPublicKey;
-            $clientPrivateKey = $kpResponse->clientPrivateKey;
-            $serverPublicKey = $kpResponse->serverPublicKey;
+        try {
+            if (\is_string($publicKey)) {
+                $response = $this->daemonClient->createConfig($userId, $publicKey);
+                $ip = $response->ip;
+                $clientPrivateKey = null;
+                $serverPublicKey = $response->serverPublicKey;
+            } else {
+                $kpResponse = $this->daemonClient->createConfig($userId);
+                $ip = $kpResponse->ip;
+                $publicKey = $kpResponse->clientPublicKey;
+                $clientPrivateKey = $kpResponse->clientPrivateKey;
+                $serverPublicKey = $kpResponse->serverPublicKey;
+            }
+        } catch (NoIPAvailableException $_) {
+            if (!$this->removeUnusedConfigs()) {
+                $message = 'No IP addresses are available.';
+                throw new HttpException($message, 500);
+            }
+
+            return $this->addConfig($userId, $displayName, $clientId, $publicKey);
         }
+
         try {
             $this->storage->addWGConfig($userId, $publicKey, $displayName, $clientId);
         } catch (\PDOException $e) {
@@ -200,5 +218,69 @@ class WGManager
     public function enableUser($userId)
     {
         $this->daemonClient->enableUser($userId);
+    }
+
+    /**
+     * First remove all configs not created in the portal of all disabled users. If no configs are removed, remove all
+     * configs of all disabled users. If no configs are removed, remove all configs not created in te portal that have
+     * not been used in 1 day (todo). Clients should have send a disconnect call which should have removed these configs,
+     * but this call might not always reach the api.
+     *
+     * @throws HttpException
+     *
+     * @return bool if we removed at least 1 config
+     */
+    private function removeUnusedConfigs()
+    {
+        // Prevent exceptions from leaking info about other users.
+        try {
+            $users = $this->serverClient->getRequireArray('user_list');
+
+            /** @var array<VPNServerAPIUser>|array<ValidationError> $users */
+            $users = TypeCreator::createType("array<LC\Portal\WireGuard\Manager\VPNServerAPIUser>", $users);
+            if (!ValidationError::isValid($users)) {
+                throw new HttpException('Could not parse users from API', 500);
+            }
+
+            $removed = false;
+            /** @var array<array{userId: string, publicKey: string}> $portalConfigsDisabledUsers */
+            $portalConfigsDisabledUsers = [];
+            /** @var array<VPNServerAPIUser> $users */
+            foreach ($users as $user) {
+                if ($user->disabled) {
+                    $configs = $this->getConfigs($user->userId, true);
+                    foreach ($configs as $publicKey => $config) {
+                        if (null === $config->clientId) {
+                            if (!$removed) {
+                                array_push($portalConfigsDisabledUsers, [
+                                    'userId' => $user->userId,
+                                    'publicKey' => $publicKey,
+                                ]);
+                            }
+                        } else {
+                            $this->deleteConfig($user->userId, $publicKey, $config->clientId);
+                            $removed = true;
+                        }
+                    }
+                }
+            }
+            if ($removed) {
+                return true;
+            }
+
+            foreach ($portalConfigsDisabledUsers as $userIdAndPublicKey) {
+                $this->deleteConfig($userIdAndPublicKey['userId'], $userIdAndPublicKey['publicKey'], null);
+                $removed = true;
+            }
+            if ($removed) {
+                return true;
+            }
+
+            //todo: remove configs not created in the portal that have not been used in 1 day.
+
+            return false;
+        } catch (\Exception $ex) {
+            throw new HttpException('Error removing unused WireGuard configurations.', 500);
+        }
     }
 }

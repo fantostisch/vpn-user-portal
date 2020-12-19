@@ -14,15 +14,15 @@ namespace LC\Portal\WireGuard\Daemon;
  */
 class WGDaemonError
 {
-    /** @var "config_not_found" | "user_already_enabled" | "user_already_disabled" */
+    /** @var "config_not_found" | "user_already_enabled" | "user_already_disabled" | "no_ip_available" */
     public $errorType;
 
     /** @var string */
     public $errorDescription;
 
     /**
-     * @param "config_not_found" | "user_already_enabled" | "user_already_disabled" $errorType
-     * @param string                                                                $errorDescription
+     * @param "config_not_found" | "user_already_enabled" | "user_already_disabled" | "no_ip_available" $errorType
+     * @param string                                                                                    $errorDescription
      */
     public function __construct($errorType, $errorDescription)
     {

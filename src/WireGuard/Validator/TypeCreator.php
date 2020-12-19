@@ -91,6 +91,9 @@ class TypeCreator
         // Handle array
         $arrayTypePrefix = 'array<';
         if (substr($typeName, 0, \strlen($arrayTypePrefix)) === $arrayTypePrefix) {
+            if ('>' !== substr($typeName, -1)) {
+                throw new HttpException('Invalid type: "array<" specified, but missing ">".', 500);
+            }
             if (!\is_array($data)) {
                 return [new ValidationError('Expected: "'.$typeName.'", but no array provided.')];
             }

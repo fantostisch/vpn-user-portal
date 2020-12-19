@@ -14,6 +14,9 @@ use LC\Common\HttpClient\HttpClientInterface;
 use LC\Common\Json;
 use LC\Portal\WireGuard\Validator\TypeCreator;
 
+/**
+ * @psalm-type DaemonErrorType = "config_not_found" | "user_already_enabled" | "user_already_disabled" | "no_ip_available"
+ */
 class WGDaemonClient
 {
     /** @var HttpClientInterface */
@@ -58,6 +61,7 @@ class WGDaemonClient
      * @param string      $userId
      * @param string|null $publicKey
      *
+     * @throws NoIPAvailableException
      * @throws HttpException
      *
      * @psalm-return ($publicKey is string ? WGDaemonCreateResponse : WGDaemonCreateWithKPResponse)
@@ -72,7 +76,10 @@ class WGDaemonClient
 
         $responseCode = $result->getCode();
         $responseString = $result->getBody();
-        $this->assertSuccess([], $responseCode, $responseString);
+        $error = $this->assertSuccess(['no_ip_available'], $responseCode, $responseString);
+        if ($error) {
+            throw new NoIPAvailableException();
+        }
 
         $decodedJson = Json::decode($responseString);
 
@@ -158,26 +165,26 @@ class WGDaemonClient
     }
 
     /**
-     * @param array<"config_not_found" | "user_already_enabled" | "user_already_disabled"> $allowedErrors
-     * @param int                                                                          $responseCode
-     * @param string                                                                       $responseString
+     * @param array<DaemonErrorType> $errorsToHandle
+     * @param int                    $responseCode
+     * @param string                 $responseString
      *
      * @throws HttpException
      *
-     * @return void
+     * @return bool if an error occurred
      */
-    private static function assertSuccess($allowedErrors, $responseCode, $responseString)
+    private static function assertSuccess($errorsToHandle, $responseCode, $responseString)
     {
         if (200 === $responseCode) {
-            return;
+            return false;
         }
         if (400 === $responseCode) {
             $decodedJson = Json::decode($responseString);
             $errorMessage = 'Got an error from the WG Daemon but could not decode it.';
             /** @var WGDaemonError $result */
             $error = TypeCreator::createTypeThrowIfError('\LC\Portal\WireGuard\Daemon\WGDaemonError', $decodedJson, $errorMessage);
-            if (\in_array($error->errorType, $allowedErrors, true)) {
-                return;
+            if (\in_array($error->errorType, $errorsToHandle, true)) {
+                return true;
             } else {
                 throw new HttpException('Got an error from the WG Daemon which was not allowed: "'.$error->errorType.'". Response:'.$responseString, 500);
             }

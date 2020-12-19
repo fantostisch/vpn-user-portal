@@ -96,7 +96,7 @@ try {
     if ($wgConfig instanceof WGEnabledConfig) {
         $wgHttpClient = new CurlHttpClient();
         $wgDaemonClient = new WGDaemonClient($wgHttpClient, $wgConfig->daemonUri);
-        $wgManager = new WGManager($wgConfig, $storage, $wgDaemonClient, $baseDir);
+        $wgManager = new WGManager($wgConfig, $storage, $wgDaemonClient, $baseDir, $serverClient);
         $wireguardApiModule = new WireGuardApiModule($wgManager);
         $service->addModule($wireguardApiModule);
     }
